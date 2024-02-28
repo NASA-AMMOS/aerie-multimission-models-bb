@@ -1,0 +1,7 @@
+# https://git-scm.com/docs/gitignore
+
+.DS_Store
+.gradle
+bin
+build
+.idea
