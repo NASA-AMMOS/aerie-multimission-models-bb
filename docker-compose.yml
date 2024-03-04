@@ -38,11 +38,13 @@ services:
       MERLIN_LOCAL_STORE: /usr/src/app/merlin_file_store
       MERLIN_PORT: 27183
       UNTRUE_PLAN_START: "2000-01-01T11:58:55.816Z"
+      SPICE_DIRECTORY: /usr/src/app/spice/kernels
     image: "ghcr.io/nasa-ammos/aerie-merlin:v2.4.0"
     ports: ["27183:27183"]
     restart: always
     volumes:
       - aerie_file_store:/usr/src/app/merlin_file_store
+      - $PWD/spice/kernels:/usr/src/app/spice/kernels
   aerie_merlin_worker:
     container_name: aerie_merlin_worker
     depends_on: ["postgres", "aerie_merlin"]
@@ -57,11 +59,13 @@ services:
       MERLIN_WORKER_DB_USER: aerie
       MERLIN_WORKER_LOCAL_STORE: /usr/src/app/merlin_file_store
       UNTRUE_PLAN_START: "2000-01-01T11:58:55.816Z"
+      SPICE_DIRECTORY: /usr/src/app/spice/kernels
     image: "ghcr.io/nasa-ammos/aerie-merlin-worker:v2.4.0"
     ports: ["27187:8080"]
     restart: always
     volumes:
       - aerie_file_store:/usr/src/app/merlin_file_store:ro
+      - $PWD/spice/kernels:/usr/src/app/spice/kernels
   aerie_scheduler:
     container_name: aerie_scheduler
     depends_on: ["aerie_merlin", "postgres"]
@@ -77,11 +81,13 @@ services:
       SCHEDULER_DB_SERVER: postgres
       SCHEDULER_DB_USER: aerie
       SCHEDULER_PORT: 27185
+      SPICE_DIRECTORY: /usr/src/app/spice/kernels
     image: "ghcr.io/nasa-ammos/aerie-scheduler:v2.4.0"
     ports: ["27185:27185"]
     restart: always
     volumes:
       - aerie_file_store:/usr/src/app/merlin_file_store
+      - $PWD/spice/kernels:/usr/src/app/spice/kernels
   aerie_scheduler_worker:
     container_name: aerie_scheduler_worker
     depends_on: ["postgres", "aerie_scheduler"]
@@ -99,11 +105,13 @@ services:
       SCHEDULER_OUTPUT_MODE: UpdateInputPlanWithNewActivities
       MERLIN_LOCAL_STORE: /usr/src/app/merlin_file_store
       SCHEDULER_RULES_JAR: /usr/src/app/merlin_file_store/scheduler_rules.jar
+      SPICE_DIRECTORY: /usr/src/app/spice/kernels
     image: "ghcr.io/nasa-ammos/aerie-scheduler-worker:v2.4.0"
     ports: ["27189:8080"]
     restart: always
     volumes:
       - aerie_file_store:/usr/src/app/merlin_file_store:ro
+      - $PWD/spice/kernels:/usr/src/app/spice/kernels
   aerie_sequencing:
     container_name: aerie_sequencing
     depends_on: ["postgres"]
