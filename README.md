@@ -56,3 +56,8 @@ To run unit tests under [./src/test](./src/test) against your mission model you 
 ```sh
 ./gradlew test
 ```
+
+## Acknowledgements 
+
+A special thanks to Chris Lawler and Flora Ridenhour, the original developers of the Blackbird planner, who have graciously provided the Blackbird multi-mission models to the Aerie team as a starting point for the models in this repository.   
+
