@@ -1,6 +1,6 @@
 package missionmodel.geometry.interfaces;
 
-import gov.nasa.jpl.scheduler.Window;
+import missionmodel.Window;
 import gov.nasa.jpl.time.Duration;
 import gov.nasa.jpl.time.Time;
 

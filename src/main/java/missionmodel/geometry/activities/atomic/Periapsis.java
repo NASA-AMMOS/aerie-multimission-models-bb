@@ -18,6 +18,12 @@ public class Periapsis {
   @Parameter
   public String body = "";
 
+  public Periapsis() {}
+
+  public Periapsis(String body) {
+    this.body = body;
+  }
+
   @ActivityType.EffectModel
   public void run(Mission model) {
     set(model.geometryResources.Periapsis.get(body), true);

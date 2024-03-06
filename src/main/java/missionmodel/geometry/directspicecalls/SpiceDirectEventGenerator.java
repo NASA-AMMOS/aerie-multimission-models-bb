@@ -5,7 +5,7 @@ import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException
 import missionmodel.geometry.interfaces.FunctionWithGeometricException;
 import missionmodel.geometry.interfaces.GeometricEventGenerator;
 
-import gov.nasa.jpl.scheduler.Window;
+import missionmodel.Window;
 import missionmodel.geometry.returnedobjects.IlluminationAngles;
 import spice.basic.CSPICE;
 import gov.nasa.jpl.time.Duration;

@@ -1,7 +1,10 @@
 @MissionModel(model = Mission.class)
 @WithMappers(BasicValueMappers.class)
 @WithConfiguration(Configuration.class)
-// @WithActivityType(ActivityType.class) // for new activity type
+// Activity Types
+@WithActivityType(Apoapsis.class)
+@WithActivityType(Periapsis.class)
+@WithActivityType(AddPeriapsis.class)
 // @WithMetadata(name = "unit", annotation = gov.nasa.jpl.aerie.contrib.metadata.Unit.class) // for unit support
 package missionmodel;
 
@@ -11,3 +14,6 @@ import gov.nasa.jpl.aerie.merlin.framework.annotations.MissionModel.WithActivity
 import gov.nasa.jpl.aerie.merlin.framework.annotations.MissionModel.WithConfiguration;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.MissionModel.WithMappers;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.MissionModel.WithMetadata;
+import missionmodel.geometry.activities.atomic.Apoapsis;
+import missionmodel.geometry.activities.atomic.Periapsis;
+import missionmodel.geometry.activities.spawner.AddPeriapsis;

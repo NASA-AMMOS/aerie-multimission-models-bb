@@ -18,6 +18,12 @@ public class Apoapsis {
   @Parameter
   public String body = "";
 
+  public Apoapsis() {};
+
+  public Apoapsis(String body) {
+    this.body = body;
+  }
+
   @ActivityType.EffectModel
   public void run(Mission model) {
     set(model.geometryResources.Apoapsis.get(body), true);

@@ -1,5 +1,6 @@
 package missionmodel.geometry.resources;
 
+import gov.nasa.jpl.aerie.contrib.serialization.mappers.BooleanValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.DoubleValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.Vector3DValueMapper;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
@@ -68,6 +69,12 @@ public class GenericGeometryResources {
 
       BodyHalfAngleSize.put(body, resource(discrete(0.0)));
       registrar.discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", new DoubleValueMapper()));
+
+      Periapsis.put(body, resource(discrete(false)));
+      registrar.discrete("Periapsis_" + body, Periapsis.get(body), new BooleanValueMapper());
+
+      Apoapsis.put(body, resource(discrete(false)));
+      registrar.discrete("Apoapsis_" + body, Apoapsis.get(body), new BooleanValueMapper());
     }
 
   }
