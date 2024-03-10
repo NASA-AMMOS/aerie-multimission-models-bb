@@ -151,85 +151,85 @@ public class Body {
     return bodies.keySet().toArray(new String[bodies.size()]);
   }
 
-  public static String[] getAltitudeBodies(Map<String, Body> bodies){
+  public static List<String> getAltitudeBodies(Map<String, Body> bodies){
     List<String> altitudeBodies = new ArrayList<String>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateAltitude()){
         altitudeBodies.add(body.getKey());
       }
     }
-    return altitudeBodies.toArray(new String[altitudeBodies.size()]);
+    return altitudeBodies;
   }
 
-  public static String[] getEarthSCBodies(Map<String, Body> bodies){
+  public static List<String> getEarthSCBodies(Map<String, Body> bodies){
     List<String> earthSCBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateEarthSpacecraftBodyAngle()){
         earthSCBodies.add(body.getKey());
       }
     }
-    return earthSCBodies.toArray(new String[earthSCBodies.size()]);
+    return earthSCBodies;
   }
 
-  public static String[] getRadiatorAvoidanceBodies(Map<String, Body> bodies){
+  public static List<String> getRadiatorAvoidanceBodies(Map<String, Body> bodies){
     List<String> scEarthBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateSubSCPoint()){
         scEarthBodies.add(body.getKey());
       }
     }
-    return scEarthBodies.toArray(new String[scEarthBodies.size()]);
+    return scEarthBodies;
   }
 
 
-  public static String[] getIlluminationAngleBodies(Map<String, Body> bodies){
+  public static List<String> getIlluminationAngleBodies(Map<String, Body> bodies){
     List<String> illuminatedBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateIlluminationAngles()){
         illuminatedBodies.add(body.getKey());
       }
     }
-    return illuminatedBodies.toArray(new String[illuminatedBodies.size()]);
+    return illuminatedBodies;
   }
 
-  public static String[] getSubSolarBodies(Map<String, Body> bodies){
+  public static List<String> getSubSolarBodies(Map<String, Body> bodies){
     List<String> subSolarBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateSubSolarInformation()){
         subSolarBodies.add(body.getKey());
       }
     }
-    return subSolarBodies.toArray(new String[subSolarBodies.size()]);
+    return subSolarBodies;
   }
 
-  public static String[] getRaDecBodies(Map<String, Body> bodies){
+  public static List<String> getRaDecBodies(Map<String, Body> bodies){
     List<String> raDecBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateRaDec()){
         raDecBodies.add(body.getKey());
       }
     }
-    return raDecBodies.toArray(new String[raDecBodies.size()]);
+    return raDecBodies;
   }
 
-  public static String[] getBetaAngleBodies(Map<String, Body> bodies){
+  public static List<String> getBetaAngleBodies(Map<String, Body> bodies){
     List<String> betaAngleBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateBetaAngle()){
         betaAngleBodies.add(body.getKey());
       }
     }
-    return betaAngleBodies.toArray(new String[betaAngleBodies.size()]);
+    return betaAngleBodies;
   }
 
-  public static String[] getOrbitParameterBodies(Map<String, Body> bodies){
+  public static List<String> getOrbitParameterBodies(Map<String, Body> bodies){
     List<String> orbitParameterBodies = new ArrayList<>();
     for (Map.Entry<String, Body> body : bodies.entrySet()) {
       if(body.getValue().doCalculateOrbitParameters()){
         orbitParameterBodies.add(body.getKey());
       }
     }
-    return orbitParameterBodies.toArray(new String[orbitParameterBodies.size()]);
+    return orbitParameterBodies;
   }
 
 }

@@ -47,18 +47,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     // calculate some quantities for every body
     set(geomRes.BODY_POS_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
     set(geomRes.BODY_VEL_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
-//    BODY_POS_ICRF.get(body.getName()).get("x").set(bodyPositionAndVelocityWRTSpacecraft[0].getX());
-//    BODY_POS_ICRF.get(body.getName()).get("y").set(bodyPositionAndVelocityWRTSpacecraft[0].getY());
-//    BODY_POS_ICRF.get(body.getName()).get("z").set(bodyPositionAndVelocityWRTSpacecraft[0].getZ());
-//    BODY_VEL_ICRF.get(body.getName()).get("x").set(bodyPositionAndVelocityWRTSpacecraft[1].getX());
-//    BODY_VEL_ICRF.get(body.getName()).get("y").set(bodyPositionAndVelocityWRTSpacecraft[1].getY());
-//    BODY_VEL_ICRF.get(body.getName()).get("z").set(bodyPositionAndVelocityWRTSpacecraft[1].getZ());
     set(geomRes.SpacecraftBodyRange.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
     set(geomRes.SpacecraftBodySpeed.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
     set(geomRes.BodyHalfAngleSize.get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
-//    SpacecraftBodyRange.get(body.getName()).set(bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
-//    SpacecraftBodySpeed.get(body.getName()).set(bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
-//    BodyHalfAngleSize.get(body.getName()).set(Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
 
     // this section is also multi-mission; the Sun can't have an angle from itself
     if(!body.getName().equals("SUN")){
