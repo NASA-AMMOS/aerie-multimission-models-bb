@@ -42,9 +42,6 @@ public final class Mission {
 
   public static final String NAIF_META_KERNEL_PATH = VERSIONED_KERNELS_ROOT_DIRECTORY.toString() + "/latest_meta_kernel.tm";
 
-  // Example resource declaration
-  // public MutableResource<Discrete<Double>> ExampleResource;
-
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Instant planStart, final Configuration config) {
     this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     this.absoluteClock = new AbsoluteClock(planStart);
@@ -64,7 +61,7 @@ public final class Mission {
     Body earth = new Body("EARTH", 399, "IAU_EARTH", 0.3);
     Body jupiter = new Body("JUPITER", 599, "IAU_JUPITER", 0.34,
       true, true, true, true, true,
-      false, false, false, false, false);
+      true, true, true, true, false);
 
     HashMap<String, Body> bodies = new HashMap<>();
     bodies.put("SUN", sun);
@@ -86,14 +83,6 @@ public final class Mission {
         0.1, Duration.HOUR_DURATION, Duration.HOUR_DURATION, "", this.geometryCalculator, bodies);
       spawn(bodyGeoGenerator::model);
     }
-
-    //this.bodyGeometryGenerator
-
-    //spawn()
-
-    // Example resource definition and registration
-    // ExampleResource = resource(discrete(0.0));
-    // errorRegistrar.discrete("ExampleResource", ExampleResource, new DoubleValueMapper());
 
   }
 }

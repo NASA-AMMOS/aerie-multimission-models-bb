@@ -43,6 +43,10 @@ public class GenericGeometryResources {
     ComplexRepresentativeStation.put("Madrid", "DSS-54");
   }
 
+  public MutableResource<Discrete<Double>> upleg_time;
+  public MutableResource<Discrete<Double>> downleg_time;
+  public MutableResource<Discrete<Double>> spacecraftDeclination;
+  public MutableResource<Discrete<Double>> spacecraftRightAscension;
   public Map<String, MutableResource<Discrete<Vector3D>>> BODY_POS_ICRF;
   public Map<String, MutableResource<Discrete<Vector3D>>> BODY_VEL_ICRF;
   public Map<String, MutableResource<Discrete<Double>>> SpacecraftBodyRange;
@@ -107,11 +111,31 @@ public class GenericGeometryResources {
     EarthRaDecByBody = new HashMap<>();
     BodySubSCPoint = new HashMap<>();
     SpacecraftOccultationByBodyAndStation = new HashMap<>();
+    SpacecraftEclipseByBody = new HashMap<>();
+    BetaAngleByBody = new HashMap<>();
+    EarthSpacecraftBodyAngle = new HashMap<>();
+    SpacecraftAltitude = new HashMap<>();
+    EarthRaDeltaWithSCByBody = new HashMap<>();
+    BodySubSolarPoint = new HashMap<>();
+    orbitInclinationByBody = new HashMap<>();
+    orbitPeriodByBody = new HashMap<>();
 
     Apoapsis = new HashMap<>();
     Periapsis = new HashMap<>();
 
     // Non-arrayed resources
+    upleg_time = resource(discrete(0.0));
+    registrar.discrete("upleg_time", upleg_time, new DoubleValueMapper());
+
+    downleg_time = resource(discrete(0.0));
+    registrar.discrete("downleg_time", downleg_time, new DoubleValueMapper());
+
+    spacecraftDeclination = resource(discrete(0.0));
+    registrar.discrete("spacecraftDeclination", spacecraftDeclination, new DoubleValueMapper());
+
+    spacecraftRightAscension = resource(discrete(0.0));
+    registrar.discrete("spacecraftRightAscension", spacecraftRightAscension, new DoubleValueMapper());
+
     EarthSunProbeAngle = resource(discrete(0.0));
     registrar.discrete("EarthSunProbeAngle", EarthSunProbeAngle, new DoubleValueMapper());
 
