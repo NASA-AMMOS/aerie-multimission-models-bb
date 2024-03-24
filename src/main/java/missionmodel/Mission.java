@@ -13,7 +13,11 @@ import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
 import missionmodel.spice.Spice;
 import spice.basic.SpiceErrorException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.HashMap;
 
@@ -76,10 +80,26 @@ public final class Mission {
 //    bodies.put("JUPITER", jupiter);
 
     // Initialize Geometry Model
+
+    // If the geometry config file has not been uploaded, use default_geometry_config.json
+    Path configDataPath;
+    if (config.geometryConfigDataPath().equals(Configuration.defaultConfiguration().geometryConfigDataPath())) {
+      try (final InputStream in = Mission.class.getResourceAsStream("default_geometry_config.json")) {
+        if (in == null) throw new RuntimeException("default_geometry_config.json not found");
+
+        // Move the file out of the "resources" of the jar file onto the file system as a temp file
+        configDataPath = Files.createTempFile("default_geometry_config", ".json");
+        Files.copy(in, configDataPath, StandardCopyOption.REPLACE_EXISTING);
+      } catch (final IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    } else {
+      configDataPath = config.geometryConfigDataPath();
+    }
+
     this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, config.spiceSpacecraftId(), "LT+S", this.errorRegistrar);
-    this.spiceResPop = new SpiceResourcePopulater(config.geometryConfigDataPath().toString(), this.geometryCalculator, this.absoluteClock);
+    this.spiceResPop = new SpiceResourcePopulater(configDataPath.toString(), this.geometryCalculator, this.absoluteClock);
     this.geometryResources = this.geometryCalculator.getResources();
     this.spiceResPop.calculateTimeDependentInformation();
-
   }
 }
