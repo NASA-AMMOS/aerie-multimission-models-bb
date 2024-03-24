@@ -1,5 +1,6 @@
 package missionmodel.geometry.spiceinterpolation;
 
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects;
 import missionmodel.AbsoluteClock;
 import missionmodel.JPLTimeConvertUtility;
@@ -28,18 +29,25 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   protected TimeDependentStateCalculator calc;
   protected  AbsoluteClock absClock;
 
-  protected  GenericGeometryResources geomRes;
+  private  GenericGeometryResources geomRes;
 
-  public GenericGeometryCalculator(AbsoluteClock absoluteClock, GenericGeometryResources genericGeometryResources, int sc_id, String abcorr){
+  protected  Registrar errorRegistrar;
+
+  public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Registrar errorRegistrar){
     this.absClock = absoluteClock;
-    this.geomRes = genericGeometryResources;
     this.sc_id = sc_id;
     this.abcorr = abcorr;
+    this.errorRegistrar = errorRegistrar;
   }
 
   public void setBodies(Map<String, Body> bodies){
     this.bodies = bodies;
     this.calc = new SpiceDirectTimeDependentStateCalculator(bodies, true);
+    this.geomRes = new GenericGeometryResources(errorRegistrar, bodies);
+  }
+
+  public GenericGeometryResources getResources() {
+    return this.geomRes;
   }
 
   public void calculateGeometry(Body body) throws GeometryInformationNotAvailableException {

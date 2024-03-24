@@ -87,7 +87,7 @@ public class GenericGeometryResources {
   public Map<String, MutableResource<Discrete<Boolean>>> Periapsis;
   public Map<String, MutableResource<Discrete<Boolean>>> Apoapsis;
 
-  public GenericGeometryResources(Registrar registrar, HashMap<String, Body> allBodies) {
+  public GenericGeometryResources(Registrar registrar, Map<String, Body> allBodies) {
     bodyObjects = allBodies;
     bodies = Body.getNamesOfBodies(allBodies);
     earthSpacecraftBodies =  Body.getEarthSCBodies(allBodies);

@@ -6,8 +6,11 @@ import com.google.gson.*;
 //import gov.nasa.jpl.geometrymodel.activities.spawner.AddOccultations;
 //import gov.nasa.jpl.geometrymodel.activities.spawner.AddPeriapsis;
 //import gov.nasa.jpl.geometrymodel.activities.spawner.AddSpacecraftEclipses;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
+import gov.nasa.jpl.time.Duration;
 import missionmodel.AbsoluteClock;
-import missionmodel.geometry.interfaces.GeometryCalculator;
+import missionmodel.JPLTimeConvertUtility;
+import missionmodel.geometry.resources.GenericGeometryResources;
 //import gov.nasa.jpl.scheduler.Window;
 //import gov.nasa.jpl.time.Duration;
 //import gov.nasa.jpl.time.EpochRelativeTime;
@@ -17,8 +20,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.spawn;
+import static missionmodel.config.ConfigObject.jsonObjHasKey;
+
 //import static gov.nasa.jpl.blackbirdconfig.RecursiveConfigAccess.getArbitraryJSON;
-//import static gov.nasa.jpl.blackbirdconfig.ConfigObject.jsonObjHasKey;
 //import static gov.nasa.jpl.geometrymodel.resources.GenericGeometryResources.ComplexRepresentativeStation;
 
 public class SpiceResourcePopulater {
@@ -27,27 +32,38 @@ public class SpiceResourcePopulater {
   // private Duration paddingAroundDataGaps;
   private JsonObject bodiesJsonObject;
   private HashMap<String, Body> bodies;
-  private GeometryCalculator geoCalc;
+  private GenericGeometryCalculator geoCalc;
+
+  private AbsoluteClock absClock;
 
   //public SpiceResourcePopulater(String filename, int sc_id, GeometryCalculator geoCalc, Window[] dataGaps, Duration paddingAroundDataGaps) {
-  public SpiceResourcePopulater(GeometryCalculator geoCalc, HashMap<String, Body> bodies) {
-//    try(FileReader fr = new FileReader(filename)){
-//      bodiesJsonObject = JsonParser.parseReader(fr).getAsJsonObject();
-//    }
-//    catch(JsonIOException | JsonSyntaxException | IOException e){
-//      e.printStackTrace();
-//    }
+  public SpiceResourcePopulater(String filename, GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock) {
+    try(FileReader fr = new FileReader(filename)){
+      bodiesJsonObject = JsonParser.parseReader(fr).getAsJsonObject();
+    }
+    catch(JsonIOException | JsonSyntaxException | IOException e){
+      e.printStackTrace();
+    }
 
-    //this.bodies = initializeAllBodiesFromJson();
-    this.bodies = bodies;
+    this.bodies = initializeAllBodiesFromJson();
+    //this.bodies = bodies;
     //this.sc_id = sc_id;
     this.geoCalc = geoCalc;
+    this.absClock = absoluteClock;
     this.geoCalc.setBodies(this.bodies);
     // this.dataGaps = dataGaps;
     // this.paddingAroundDataGaps = paddingAroundDataGaps;
   }
 
   public void calculateTimeDependentInformation(){
+    for(Body body : bodies.values()){
+//      List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory", Duration.ZERO_DURATION);
+//      for(CalculationPeriod calculationPeriod : calculationPeriods){
+      BodyGeometryGenerator bodyGeoGenerator = new BodyGeometryGenerator(
+        absClock, geoCalc.getResources(), JPLTimeConvertUtility.jplTimeFromUTCInstant(absClock.now()), body.getName(),
+        0.1, Duration.HOUR_DURATION, Duration.HOUR_DURATION, "", geoCalc, bodies);
+      spawn(bodyGeoGenerator::model);
+    }
 //    for(Body body : bodies.values()){
 ////      List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory", Duration.ZERO_DURATION);
 ////      for(CalculationPeriod calculationPeriod : calculationPeriods){
@@ -114,37 +130,37 @@ public class SpiceResourcePopulater {
 
   public HashMap<String, Body> initializeAllBodiesFromJson(){
     HashMap<String, Body> toReturn = new HashMap<>();
-//    JsonObject jsonObject = bodiesJsonObject.get("bodies").getAsJsonObject();
-//
-//    Set<Map.Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-//    for(Map.Entry<String, JsonElement> entry : entrySet){
-//      JsonObject body = entry.getValue().getAsJsonObject();
-//      if(jsonObjHasKey(body, "Trajectory")) {
-//        JsonObject trajectory = body.get("Trajectory").getAsJsonObject();
-//        toReturn.put(entry.getKey(), new Body(entry.getKey(),
-//          body.get("NaifID").getAsInt(),
-//          body.get("NaifFrame").getAsString(),
-//          body.get("Albedo").getAsDouble(),
-//          getIfNonNull(trajectory, "calculateAltitude"),
-//          getIfNonNull(trajectory, "calculateEarthSpacecraftBodyAngle"),
-//          getIfNonNull(trajectory, "calculateSubSCInformation"),
-//          getIfNonNull(trajectory, "calculateRaDec"),
-//          getIfNonNull(trajectory, "calculateIlluminationAngles"),
-//          getIfNonNull(trajectory, "calculateSubSolarInformation"),
-//          getIfNonNull(trajectory, "calculateLST"),
-//          getIfNonNull(trajectory, "calculateBetaAngle"),
-//          getIfNonNull(trajectory, "calculateOrbitParameters"),
-//          getIfNonNull(trajectory, "useDSK")));
-//      }
-//      else{
-//        toReturn.put(entry.getKey(), new Body(entry.getKey(),
-//          body.get("NaifID").getAsInt(),
-//          body.get("NaifFrame").getAsString(),
-//          body.get("Albedo").getAsDouble()
-//        ));
-//      }
-//    }
-//
+    JsonObject jsonObject = bodiesJsonObject.get("bodies").getAsJsonObject();
+
+    Set<Map.Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
+    for(Map.Entry<String, JsonElement> entry : entrySet){
+      JsonObject body = entry.getValue().getAsJsonObject();
+      if(jsonObjHasKey(body, "Trajectory")) {
+        JsonObject trajectory = body.get("Trajectory").getAsJsonObject();
+        toReturn.put(entry.getKey(), new Body(entry.getKey(),
+          body.get("NaifID").getAsInt(),
+          body.get("NaifFrame").getAsString(),
+          body.get("Albedo").getAsDouble(),
+          getIfNonNull(trajectory, "calculateAltitude"),
+          getIfNonNull(trajectory, "calculateEarthSpacecraftBodyAngle"),
+          getIfNonNull(trajectory, "calculateSubSCInformation"),
+          getIfNonNull(trajectory, "calculateRaDec"),
+          getIfNonNull(trajectory, "calculateIlluminationAngles"),
+          getIfNonNull(trajectory, "calculateSubSolarInformation"),
+          getIfNonNull(trajectory, "calculateLST"),
+          getIfNonNull(trajectory, "calculateBetaAngle"),
+          getIfNonNull(trajectory, "calculateOrbitParameters"),
+          getIfNonNull(trajectory, "useDSK")));
+      }
+      else{
+        toReturn.put(entry.getKey(), new Body(entry.getKey(),
+          body.get("NaifID").getAsInt(),
+          body.get("NaifFrame").getAsString(),
+          body.get("Albedo").getAsDouble()
+        ));
+      }
+    }
+
    return toReturn;
   }
 

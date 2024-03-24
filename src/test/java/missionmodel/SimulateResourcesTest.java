@@ -2,6 +2,7 @@ package missionmodel;
 
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,12 @@ public class SimulateResourcesTest {
     final var simulationStartTime = Instant.now();
     final var simulationDuration = Duration.of(96, HOURS);
 
+    // Input configuration
+    //String currentDir = System.getProperty("user.dir");
+    final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
+    final Integer scid = -61; // Juno
+    final Configuration geomConfig = new Configuration(geomConfigPath, scid);
+
     // Add Activities to Plan
     final Map<ActivityDirectiveId, ActivityDirective> schedule = new HashMap<>();
 
@@ -43,7 +50,7 @@ public class SimulateResourcesTest {
 //                true
 //        ));
 
-    final var results = simulate(new Configuration(), simulationStartTime, simulationDuration, schedule);
+    final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
   }
 
   public SimulationResults simulate(

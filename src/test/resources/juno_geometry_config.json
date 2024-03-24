@@ -1,0 +1,102 @@
+{
+  "bodies": {
+    "SUN": {
+      "NaifID": 10,
+      "NaifFrame": "IAU_SUN",
+      "Albedo": 1.0,
+      "Trajectory": {
+        "calculateAltitude": false,
+        "calculateEarthSpacecraftBodyAngle": false,
+        "calculateSubSCInformation": false,
+        "calculateRaDec": false,
+        "calculateIlluminationAngles": false,
+        "calculateSubSolarInformation": false,
+        "calculateLST": false,
+        "calculateBetaAngle": false,
+        "calculateOrbitParameters": false,
+        "useDSK": false,
+        "calculationPeriods": []
+      },
+      "Apoapsis": {
+        "calculationPeriods": []
+      },
+      "Periapsis": {
+        "calculationPeriods": []
+      },
+      "SolarEclipses": {
+        "calculationPeriods": []
+      },
+      "Occultations": {
+        "calculationPeriods": []
+      }
+    },
+    "EARTH": {
+      "NaifID": 399,
+      "NaifFrame": "IAU_EARTH",
+      "Albedo": 0.3,
+      "Trajectory": {
+        "calculateAltitude": false,
+        "calculateEarthSpacecraftBodyAngle": false,
+        "calculateSubSCInformation": false,
+        "calculateRaDec": false,
+        "calculateIlluminationAngles": false,
+        "calculateSubSolarInformation": false,
+        "calculateLST": false,
+        "calculateBetaAngle": false,
+        "calculateOrbitParameters": false,
+        "useDSK": false,
+        "calculationPeriods": [
+          {
+            "begin": "2021-12T00:00:00.000",
+            "end": "2025-200T00:00:00.000",
+            "minTimeStep": "01:00:00",
+            "maxTimeStep": "01:00:00",
+            "threshold": 0.1
+          }
+        ]
+      },
+      "Apoapsis": {
+        "calculationPeriods": []
+      },
+      "Periapsis": {
+        "calculationPeriods": []
+      },
+      "SolarEclipses": {
+        "calculationPeriods": []
+      },
+      "Occultations": {
+        "calculationPeriods": []
+      }
+    },
+    "JUPITER": {
+      "NaifID": 599,
+      "NaifFrame": "IAU_JUPITER",
+      "Albedo": 0.34,
+      "Trajectory": {
+        "calculateAltitude": true,
+        "calculateEarthSpacecraftBodyAngle": true,
+        "calculateSubSCInformation": true,
+        "calculateRaDec": true,
+        "calculateIlluminationAngles": true,
+        "calculateSubSolarInformation": true,
+        "calculateLST": true,
+        "calculateBetaAngle": true,
+        "calculateOrbitParameters": true,
+        "useDSK": false,
+        "calculationPeriods": []
+      },
+      "Apoapsis": {
+        "calculationPeriods": []
+      },
+      "Periapsis": {
+        "calculationPeriods": []
+      },
+      "SolarEclipses": {
+        "calculationPeriods": []
+      },
+      "Occultations": {
+        "calculationPeriods": []
+      }
+    }
+  }
+}

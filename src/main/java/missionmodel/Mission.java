@@ -9,6 +9,7 @@ import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.Body;
 import missionmodel.geometry.spiceinterpolation.BodyGeometryGenerator;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
+import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
 import missionmodel.spice.Spice;
 import spice.basic.SpiceErrorException;
 
@@ -35,8 +36,11 @@ public final class Mission {
 
   public final AbsoluteClock absoluteClock;
 
-  public final GenericGeometryResources geometryResources;
   public final GenericGeometryCalculator geometryCalculator;
+
+  public final SpiceResourcePopulater spiceResPop;
+
+  public final GenericGeometryResources geometryResources;
 
   public static final Path VERSIONED_KERNELS_ROOT_DIRECTORY = Path.of(System.getenv().getOrDefault("SPICE_DIRECTORY", "spice/kernels"));
 
@@ -45,6 +49,9 @@ public final class Mission {
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Instant planStart, final Configuration config) {
     this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     this.absoluteClock = new AbsoluteClock(planStart);
+
+//    String configFilename = Path.of(ENDURANCE_INPUTS_DIR, configFileName).toString();
+//    MissionConfig missionConfig = readConfigFile(configFilename);
 
     //Map<String,Object> bodies = new HashMap<>()
     //Map<String, Object> body = new HashMap<String>();
@@ -57,32 +64,22 @@ public final class Mission {
     }
 
     // Initialize Bodies
-    Body sun = new Body("SUN", 10, "IAU_SUN", 1.0);
-    Body earth = new Body("EARTH", 399, "IAU_EARTH", 0.3);
-    Body jupiter = new Body("JUPITER", 599, "IAU_JUPITER", 0.34,
-      true, true, true, true, true,
-      true, true, true, true, false);
+//    Body sun = new Body("SUN", 10, "IAU_SUN", 1.0);
+//    Body earth = new Body("EARTH", 399, "IAU_EARTH", 0.3);
+//    Body jupiter = new Body("JUPITER", 599, "IAU_JUPITER", 0.34,
+//      true, true, true, true, true,
+//      true, true, true, true, false);
+//
+//    HashMap<String, Body> bodies = new HashMap<>();
+//    bodies.put("SUN", sun);
+//    bodies.put("EARTH", earth);
+//    bodies.put("JUPITER", jupiter);
 
-    HashMap<String, Body> bodies = new HashMap<>();
-    bodies.put("SUN", sun);
-    bodies.put("EARTH", earth);
-    bodies.put("JUPITER", jupiter);
-
-    // Spacecraft ID
-    Integer juno_sc_id = -61;
-
-    this.geometryResources = new GenericGeometryResources(errorRegistrar, bodies);
-    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, this.geometryResources, juno_sc_id, "LT+S" );
-    this.geometryCalculator.setBodies(bodies);
-
-    for(Body body : bodies.values()){
-//      List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory", Duration.ZERO_DURATION);
-//      for(CalculationPeriod calculationPeriod : calculationPeriods){
-      BodyGeometryGenerator bodyGeoGenerator = new BodyGeometryGenerator(
-        absoluteClock, this.geometryResources, JPLTimeConvertUtility.jplTimeFromUTCInstant(planStart), body.getName(),
-        0.1, Duration.HOUR_DURATION, Duration.HOUR_DURATION, "", this.geometryCalculator, bodies);
-      spawn(bodyGeoGenerator::model);
-    }
+    // Initialize Geometry Model
+    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, config.spiceSpacecraftId(), "LT+S", this.errorRegistrar);
+    this.spiceResPop = new SpiceResourcePopulater(config.geometryConfigDataPath().toString(), this.geometryCalculator, this.absoluteClock);
+    this.geometryResources = this.geometryCalculator.getResources();
+    this.spiceResPop.calculateTimeDependentInformation();
 
   }
 }
