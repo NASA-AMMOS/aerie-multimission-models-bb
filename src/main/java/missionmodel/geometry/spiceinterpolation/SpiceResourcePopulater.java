@@ -10,6 +10,7 @@ import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.time.Duration;
 import missionmodel.AbsoluteClock;
 import missionmodel.JPLTimeConvertUtility;
+import missionmodel.Mission;
 import missionmodel.geometry.resources.GenericGeometryResources;
 //import gov.nasa.jpl.scheduler.Window;
 //import gov.nasa.jpl.time.Duration;
@@ -18,6 +19,8 @@ import missionmodel.geometry.resources.GenericGeometryResources;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.spawn;
@@ -37,12 +40,14 @@ public class SpiceResourcePopulater {
   private AbsoluteClock absClock;
 
   //public SpiceResourcePopulater(String filename, int sc_id, GeometryCalculator geoCalc, Window[] dataGaps, Duration paddingAroundDataGaps) {
-  public SpiceResourcePopulater(String filename, GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock) {
-    try(FileReader fr = new FileReader(filename)){
-      bodiesJsonObject = JsonParser.parseReader(fr).getAsJsonObject();
-    }
-    catch(JsonIOException | JsonSyntaxException | IOException e){
-      e.printStackTrace();
+  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock) {
+    try (
+      var in = Objects.requireNonNull(Mission.class.getResourceAsStream("default_geometry_config.json"), "default_geometry_config.json not found");
+      var reader = new InputStreamReader(in)
+    ) {
+      bodiesJsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+    } catch (IOException e) {
+        throw new RuntimeException(e);
     }
 
     this.bodies = initializeAllBodiesFromJson();
