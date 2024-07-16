@@ -1,23 +1,9 @@
 package missionmodel;
 
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
-import missionmodel.generated.GeneratedModelType;
-import gov.nasa.jpl.aerie.merlin.driver.ActivityDirective;
-import gov.nasa.jpl.aerie.merlin.driver.ActivityDirectiveId;
-import gov.nasa.jpl.aerie.merlin.driver.DirectiveTypeRegistry;
-import gov.nasa.jpl.aerie.merlin.driver.MissionModel;
-import gov.nasa.jpl.aerie.merlin.driver.MissionModelBuilder;
-import gov.nasa.jpl.aerie.merlin.driver.SimulationDriver;
-import gov.nasa.jpl.aerie.merlin.driver.SimulationResults;
+import gov.nasa.jpl.aerie.merlin.driver.*;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
-
+import missionmodel.generated.GeneratedModelType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -34,7 +20,6 @@ public class GeometrySpawnersTest {
     final var simulationDuration = Duration.of(24, HOURS);
 
     // Input configuration
-    // final Integer scid = -660; // VERITAS
     final Configuration geomConfig = Configuration.defaultConfiguration();
 
     // Add Activities to Plan

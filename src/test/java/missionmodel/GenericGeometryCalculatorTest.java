@@ -1,2 +1,86 @@
-package missionmodel;public class GenericGeometryCalculatorTest {
+package missionmodel;
+
+import gov.nasa.jpl.aerie.merlin.framework.Registrar;
+import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
+import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
+import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
+import missionmodel.geometry.resources.GenericGeometryResources;
+import missionmodel.geometry.spiceinterpolation.Body;
+import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
+import org.junit.jupiter.api.Test;
+
+import gov.nasa.jpl.time.Time;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+// The `@ExtendWith` annotation injects the given extension into JUnit's testing apparatus.
+// Our `MerlinExtension` hooks test class construction and test method execution,
+// executing each with the appropriate simulation context.
+@ExtendWith(MerlinExtension.class)
+@TestInstance(Lifecycle.PER_CLASS)
+public class GenericGeometryCalculatorTest {
+
+  private final Mission model;
+
+  private final Instant planStart;
+
+  private SpiceDirectTimeDependentStateCalculator stateCalculator;
+
+  // Initializers and the test class constructor are executed in an "initialization" Merlin context.
+  // This means that models can be created (and cell storage allocated, and daemons spawned),
+  // but simulation control actions like `waitFor`, `delay`, and `emit` cannot be performed.
+  // The `Registrar` does not need to be declared as a parameter, but will be injected if declared.
+  public GenericGeometryCalculatorTest(final Registrar registrar) {
+    // The test kernel set has the following valid data interval for MRO, which is the limiting case
+    // Body: MARS RECON ORBITER (-74)
+    // Start of Interval (ET)              End of Interval (ET)
+    // -----------------------------       -----------------------------
+    // 2024 JAN 01 00:01:10.000            2024 MAY 06 10:40:00.000
+    this.planStart = Instant.parse("2024-01-02T00:00:00Z");
+    // Model configuration can be provided directly, just as for a normal Java class constructor.
+    this.model = new Mission(registrar, planStart, new Configuration());
+    // For performing SPICE calls directly in tests
+    this.stateCalculator = new SpiceDirectTimeDependentStateCalculator(true);
+  }
+
+  @Test
+  public void testCalculateGeometry() {
+    Time t = JPLTimeConvertUtility.jplTimeFromUTCInstant(planStart);
+    int sc_id = -74; // MRO
+    String sc_str = Integer.toString(sc_id);
+
+    GenericGeometryCalculator geoCalc = this.model.geometryCalculator;
+    GenericGeometryResources geoRes = this.model.geometryResources;
+    Map<String, Body> listOfBodies = geoCalc.getBodies();
+
+    try {
+      geoCalc.calculateGeometry(listOfBodies.get("MARS"));
+      geoCalc.calculateGeometry(listOfBodies.get("SUN"));
+      geoCalc.calculateGeometry(listOfBodies.get("EARTH"));
+    } catch (GeometryInformationNotAvailableException e) {
+      e.printStackTrace();
+    }
+
+    // now we have to check all the resources that genericgeometrycalculator purports to calculate that aren't just pass-throughs
+    try {
+      assertEquals(stateCalculator.getEarthSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.EarthSpacecraftBodyAngle.get("MARS")), 0.01);
+      assertEquals(stateCalculator.getSunBodySpacecraftAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle.get("MARS")), 0.01);
+      assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle.get("MARS")), 0.01);
+
+    } catch (GeometryInformationNotAvailableException e) {
+      e.printStackTrace();
+    }
+  }
+
 }
