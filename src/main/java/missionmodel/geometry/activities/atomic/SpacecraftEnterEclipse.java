@@ -52,16 +52,16 @@ public class SpacecraftEnterEclipse {
       for(int i = 0; i < num_segments; i++){
           // some call to vzfrac that we don't have access to yet, so instead let's be dumb
           if(priorType.equals(EclipseTypes.NONE)) {
-            set(model.geometryResources.FractionOfSunNotInEclipse, ((double) i) / num_segments);
+            // We are transitioning from full Sun to less than full Sun
+            set(model.geometryResources.FractionOfSunNotInEclipse, (1.0- (((double) i) / num_segments)));
           }
           else{
             // we're transitioning from full back to none
-            set(model.geometryResources.FractionOfSunNotInEclipse, (1.0- (((double) i) / num_segments)));
+            set(model.geometryResources.FractionOfSunNotInEclipse, ((double) i) / num_segments);
           }
           delay(stepTime);
       }
 
-      set(model.geometryResources.FractionOfSunNotInEclipse, 0.0);
     }
 
   }

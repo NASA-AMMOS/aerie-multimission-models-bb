@@ -20,14 +20,14 @@ import static missionmodel.generated.ActivityActions.spawn;
 public class AddApoapsis {
 
   @Export.Parameter
-  public gov.nasa.jpl.aerie.merlin.protocol.types.Duration searchDuration;
+  public Duration searchDuration;
 
   @Export.Parameter
   public String body;
   @Export.Parameter
   public String target;
   @Export.Parameter
-  public gov.nasa.jpl.aerie.merlin.protocol.types.Duration stepSize;
+  public Duration stepSize;
   @Export.Parameter
   public Double minDistanceFilter;
 

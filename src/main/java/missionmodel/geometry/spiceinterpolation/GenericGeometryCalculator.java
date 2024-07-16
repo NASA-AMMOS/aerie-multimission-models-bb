@@ -1,7 +1,7 @@
 package missionmodel.geometry.spiceinterpolation;
 
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
-import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects;
+import gov.nasa.jpl.time.Time;
 import missionmodel.AbsoluteClock;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
@@ -10,17 +10,14 @@ import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException
 import missionmodel.geometry.interfaces.TimeDependentStateCalculator;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.returnedobjects.*;
-import gov.nasa.jpl.time.Time;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import spice.basic.SpiceErrorException;
 
 import java.util.Map;
 
-// import static missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator.et2LSTHours;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects.set;
 import static missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator.et2LSTHours;
-import static missionmodel.geometry.resources.GenericGeometryResources.*;
 
 public class GenericGeometryCalculator implements GeometryCalculator {
   protected Map<String, Body> bodies;
@@ -44,6 +41,10 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     this.bodies = bodies;
     this.calc = new SpiceDirectTimeDependentStateCalculator(bodies, true);
     this.geomRes = new GenericGeometryResources(errorRegistrar, bodies);
+  }
+
+  public Map<String, Body> getBodies(){
+    return bodies;
   }
 
   public GenericGeometryResources getResources() {

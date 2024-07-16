@@ -3,12 +3,12 @@ package missionmodel.geometry.activities.spawner;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.ActivityType;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.Export;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
+import gov.nasa.jpl.time.Time;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.Mission;
 import missionmodel.geometry.activities.atomic.Periapsis;
 import missionmodel.geometry.directspicecalls.SpiceDirectEventGenerator;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
-import gov.nasa.jpl.time.Time;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +20,14 @@ import static missionmodel.generated.ActivityActions.spawn;
 public class AddPeriapsis {
 
   @Export.Parameter
-  public gov.nasa.jpl.aerie.merlin.protocol.types.Duration searchDuration;
+  public Duration searchDuration;
 
   @Export.Parameter
   public String body;
   @Export.Parameter
   public String target;
   @Export.Parameter
-  public gov.nasa.jpl.aerie.merlin.protocol.types.Duration stepSize;
+  public Duration stepSize;
   @Export.Parameter
   public Double maxDistanceFilter;
 

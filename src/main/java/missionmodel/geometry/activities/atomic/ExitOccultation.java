@@ -3,18 +3,15 @@ package missionmodel.geometry.activities.atomic;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.ActivityType;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.Export;
-import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import missionmodel.Mission;
-
-import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 @ActivityType("ExitOccultation")
 public class ExitOccultation {
 
   @Export.Parameter
-  public String body;
+  public String body = "";
   @Export.Parameter
-  public String station;
+  public String station = "DSS-24";
 
   public ExitOccultation() {};
 
@@ -29,6 +26,5 @@ public class ExitOccultation {
     // setName("EnterOccultation_" + body + "_SeenFrom_" + station);
     DiscreteEffects.decrement(model.geometryResources.Occultation, 1);
     DiscreteEffects.turnOff(model.geometryResources.SpacecraftOccultationByBodyAndStation.get(body).get(station));
-    delay(Duration.SECOND);
   }
 }

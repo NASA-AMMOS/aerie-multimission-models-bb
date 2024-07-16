@@ -18,10 +18,14 @@
 
            KERNELS_TO_LOAD = (
 
-              '$KERNELS/spk_ref_210111_251021_210111.bsp',
+              '$KERNELS/de440s.bsp',
               '$KERNELS/naif0012.tls',
               '$KERNELS/pck00011.tpc',
-              '$KERNELS/gm_de440.tpc'
+              '$KERNELS/gm_de440.tpc',
+              '$KERNELS/earth_070425_370426_predict.bpc',
+              '$KERNELS/earthstns_itrf93_201023.bsp',
+              '$KERNELS/mar097_2020_2040.bsp',
+              '$KERNELS/mro_psp.bsp'
 
            )
 

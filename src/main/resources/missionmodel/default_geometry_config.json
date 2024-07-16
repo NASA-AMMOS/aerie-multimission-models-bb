@@ -15,7 +15,15 @@
         "calculateBetaAngle": false,
         "calculateOrbitParameters": false,
         "useDSK": false,
-        "calculationPeriods": []
+        "calculationPeriods": [
+          {
+            "begin": "2024-01-02T00:00:00.000",
+            "end": "2024-05-06T00:00:00.000",
+            "minTimeStep": "01:00:00",
+            "maxTimeStep": "01:00:00",
+            "threshold": 0.1
+          }
+        ]
       },
       "Apoapsis": {
         "calculationPeriods": []
@@ -47,8 +55,8 @@
         "useDSK": false,
         "calculationPeriods": [
           {
-            "begin": "2021-12T00:00:00.000",
-            "end": "2025-200T00:00:00.000",
+            "begin": "2024-01-02T00:00:00.000",
+            "end": "2024-05-06T00:00:00.000",
             "minTimeStep": "01:00:00",
             "maxTimeStep": "01:00:00",
             "threshold": 0.1
@@ -68,10 +76,10 @@
         "calculationPeriods": []
       }
     },
-    "JUPITER": {
-      "NaifID": 599,
-      "NaifFrame": "IAU_JUPITER",
-      "Albedo": 0.34,
+    "MARS": {
+      "NaifID": 499,
+      "NaifFrame": "IAU_MARS",
+      "Albedo": 0.17,
       "Trajectory": {
         "calculateAltitude": true,
         "calculateEarthSpacecraftBodyAngle": true,
@@ -83,7 +91,15 @@
         "calculateBetaAngle": true,
         "calculateOrbitParameters": true,
         "useDSK": false,
-        "calculationPeriods": []
+        "calculationPeriods": [
+          {
+            "begin": "2024-01-02T00:00:00.000",
+            "end": "2024-05-06T00:00:00.000",
+            "minTimeStep": "00:00:30",
+            "maxTimeStep": "00:00:30",
+            "threshold": 0.1
+          }
+        ]
       },
       "Apoapsis": {
         "calculationPeriods": []
