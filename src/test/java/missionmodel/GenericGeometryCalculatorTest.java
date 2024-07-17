@@ -5,8 +5,6 @@ import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.resources.GenericGeometryResources;
-import missionmodel.geometry.spiceinterpolation.Body;
-import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
 import org.junit.jupiter.api.Test;
 
 import gov.nasa.jpl.time.Time;
@@ -56,28 +54,20 @@ public class GenericGeometryCalculatorTest {
 
   @Test
   public void testCalculateGeometry() {
+    // By this point the model has been initialized and we are in the simulation context at the start of the plan
     Time t = JPLTimeConvertUtility.jplTimeFromUTCInstant(planStart);
     int sc_id = -74; // MRO
     String sc_str = Integer.toString(sc_id);
 
-    GenericGeometryCalculator geoCalc = this.model.geometryCalculator;
+    // Check all resources that the GenericGeometryCalculator calculates that aren't just a direct pass-through
+    // to SPICE
     GenericGeometryResources geoRes = this.model.geometryResources;
-    Map<String, Body> listOfBodies = geoCalc.getBodies();
-
     try {
-      geoCalc.calculateGeometry(listOfBodies.get("MARS"));
-      geoCalc.calculateGeometry(listOfBodies.get("SUN"));
-      geoCalc.calculateGeometry(listOfBodies.get("EARTH"));
-    } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
-    }
-
-    // now we have to check all the resources that genericgeometrycalculator purports to calculate that aren't just pass-throughs
-    try {
+      assertEquals(stateCalculator.getBodyHalfAngleSize(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.BodyHalfAngleSize.get("MARS")), 0.01);
       assertEquals(stateCalculator.getEarthSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.EarthSpacecraftBodyAngle.get("MARS")), 0.01);
       assertEquals(stateCalculator.getSunBodySpacecraftAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle.get("MARS")), 0.01);
-      assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle.get("MARS")), 0.01);
-
+      assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunSpacecraftBodyAngle.get("MARS")), 0.01);
+      assertEquals(stateCalculator.getEarthSunProbeAngle(t, sc_str, "LT+S"), currentValue(geoRes.EarthSunProbeAngle), 0.01);
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
