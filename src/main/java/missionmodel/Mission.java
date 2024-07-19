@@ -6,6 +6,7 @@ import gov.nasa.jpl.time.Duration;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
 import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
+import missionmodel.gnc.GncDataModel;
 import missionmodel.spice.Spice;
 import spice.basic.SpiceErrorException;
 
@@ -37,6 +38,11 @@ public final class Mission {
 
   public static final String NAIF_META_KERNEL_PATH = VERSIONED_KERNELS_ROOT_DIRECTORY.toString() + "/latest_meta_kernel.tm";
 
+
+  // --------------------------------
+  // GNC Model Variables
+  public GncDataModel gncDataModel;
+
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Instant planStart, final Configuration config) {
     this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     this.absoluteClock = new AbsoluteClock(planStart);
@@ -53,5 +59,9 @@ public final class Mission {
     this.spiceResPop = new SpiceResourcePopulater(this.geometryCalculator, this.absoluteClock);
     this.geometryResources = this.geometryCalculator.getResources();
     this.spiceResPop.calculateTimeDependentInformation();
+
+    // --------------------------------
+    // GNC Model Integration
+    this.gncDataModel = new GncDataModel(this.errorRegistrar);
   }
 }

@@ -12,6 +12,8 @@
 @WithActivityType(AddApoapsis.class)
 @WithActivityType(AddOccultations.class)
 @WithActivityType(AddSpacecraftEclipses.class)
+// Activity Types - GNC
+@WithActivityType(PointingActivity.class)
 
 // @WithMetadata(name = "unit", annotation = gov.nasa.jpl.aerie.contrib.metadata.Unit.class) // for unit support
 package missionmodel;
@@ -27,3 +29,4 @@ import missionmodel.geometry.activities.spawner.AddApoapsis;
 import missionmodel.geometry.activities.spawner.AddOccultations;
 import missionmodel.geometry.activities.spawner.AddPeriapsis;
 import missionmodel.geometry.activities.spawner.AddSpacecraftEclipses;
+import missionmodel.gnc.activities.PointingActivity;
