@@ -3,8 +3,6 @@ metakernel_fname = 'latest_meta_kernel.tm';
 
 sc_name = 'MRO';
 sc_id = '-74';
-target = 'MARS';
-abcorr = 'LT+S';
 
 fprintf('--------------------------------------------------\n');
 fprintf('Loading SPICE Kernels:\n');
@@ -15,6 +13,12 @@ fprintf('  %s\n',fullfile(path_kernels, metakernel_fname));
 cspice_furnsh( fullfile(path_kernels, metakernel_fname) );
 
 
+fprintf('--------------------------------------------------\n');
+fprintf('Geometric Quantities :\n');
+fprintf('--------------------------------------------------\n');
+
+target = 'MARS';
+abcorr = 'LT+S';
 
 % Input Time
 test_time_utc = '2024-01-02 00:00:00 UTC';
@@ -213,6 +217,218 @@ fprintf('DEC: = %0.5f\n', dec*180/pi);
 decimal_hrs = hr + mn/60.0 + sc/3600.0; 
 fprintf('%s LST at %s \n', sc_name, test_time_utc);
 fprintf('LST: = %0.5f\n', decimal_hrs);
+
+fprintf('--------------------------------------------------\n');
+fprintf('Geometric Events :\n');
+fprintf('--------------------------------------------------\n');
+
+
+%%%%%%%%%%%%%%%%
+% Get Periapsis Times
+%%%%%%%%%%%%%%%%
+%
+% Store the time bounds of our search interval in
+% the cnfine confinement window.
+%
+utc_start = '2024-01-02 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+target = 'MARS';
+abcorr = 'CN';
+
+relate  = 'LOCMIN';
+refval  = 0;
+adjust  = 0.;
+step    = 60;
+nintvls = 1000;
+
+result = cspice_gfdist( target, abcorr, sc_id,  relate, refval, ...
+                     adjust, step,   nintvls, cnfine );
+                 
+                 
+fprintf('Periapsis Times for %s between %s and %s \n', sc_name, utc_start, utc_end);
+fprintf('%0.5f\n', result(1:2:end));
+
+
+%%%%%%%%%%%%%%%%
+% Get Apoapsis Times
+%%%%%%%%%%%%%%%%
+utc_start = '2024-01-02 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+target = 'MARS';
+abcorr = 'CN';
+
+relate  = 'LOCMAX';
+refval  = 0;
+adjust  = 0.;
+step    = 60;
+nintvls = 1000;
+
+result = cspice_gfdist( target, abcorr, sc_id,  relate, refval, ...
+                     adjust, step,   nintvls, cnfine );
+                 
+                 
+fprintf('Apoapsis Times for %s between %s and %s \n', sc_name, utc_start, utc_end);
+fprintf('%0.5f\n', result(1:2:end));
+
+%%%%%%%%%%%%%%%%
+% Get Conjunction Times
+%%%%%%%%%%%%%%%%
+utc_start = '2023-07-01 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+%
+% Search using a step size of 1 day (in units of
+% seconds).  The reference value is 400000 km.
+% We're not using the adjustment feature, so
+% we set `adjust' to zero.
+%
+target = 'MARS';
+abcorr = 'CN';
+
+relate  = '<';
+refval  = 3*pi/180;
+adjust  = 0.;
+step    = 3600;
+nintvls = 1000;
+
+result = cspice_gfsep( 'SUN',   'POINT', 'NULL',                  ...
+                    target,  'POINT', 'NULL',                  ...
+                    abcorr,  'EARTH', relate,                  ...
+                    refval,  adjust, step,                    ...
+                    nintvls, cnfine         );
+                
+fprintf('Conjunction Times for %s between %s and %s \n', target, utc_start, utc_end);
+fprintf('[%0.5f, %0.5f]\n', result);
+
+
+%%%%%%%%%%%%%%%%
+% Get Eclipses
+%%%%%%%%%%%%%%%%
+utc_start = '2024-01-02 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+%
+% Search using a step size of 1 day (in units of
+% seconds).  The reference value is 400000 km.
+% We're not using the adjustment feature, so
+% we set `adjust' to zero.
+%
+target = 'MARS';
+abcorr = 'CN';
+
+%
+% Select a 3-minute step. We'll ignore any occultations
+% lasting less than 3 minutes.
+%
+step    = 180.;
+occtyp  = 'any';
+front   = target;
+fshape  = 'ellipsoid';
+fframe  = 'iau_mars';
+back    = 'sun';
+bshape  = 'ellipsoid';
+bframe  = 'iau_sun';
+obsrvr  = sc_id;
+MAXWIN = 1000;
+
+result = cspice_gfoclt( occtyp, front,  fshape, fframe,          ...
+                     back,   bshape, bframe, abcorr,          ...
+                     obsrvr, step,   cnfine, MAXWIN );
+                
+fprintf('Eclipse Times for %s between %s and %s \n', sc_name, utc_start, utc_end);
+fprintf('[%0.5f, %0.5f]\n', result);
+
+
+%%%%%%%%%%%%%%%%
+% Get Occultations
+%%%%%%%%%%%%%%%%
+utc_start = '2024-01-02 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+%
+% Search using a step size of 1 day (in units of
+% seconds).  The reference value is 400000 km.
+% We're not using the adjustment feature, so
+% we set `adjust' to zero.
+%
+target = 'MARS';
+abcorr = 'CN';
+
+%
+% Select a 3-minute step. We'll ignore any occultations
+% lasting less than 3 minutes.
+%
+step    = 180.;
+occtyp  = 'any';
+front   = target;
+fshape  = 'ellipsoid';
+fframe  = 'iau_mars';
+back    = 'earth';
+bshape  = 'ellipsoid';
+bframe  = 'iau_earth';
+obsrvr  = sc_id;
+MAXWIN = 1000;
+
+result = cspice_gfoclt( occtyp, front,  fshape, fframe,          ...
+                     back,   bshape, bframe, abcorr,          ...
+                     obsrvr, step,   cnfine, MAXWIN );
+                
+fprintf('Occultation Times for %s between %s and %s \n', sc_name, utc_start, utc_end);
+fprintf('[%0.5f, %0.5f]\n', result);
+
+
+%%%%%%%%%%%%%%%%
+% Get DSS-24 Occultations
+%%%%%%%%%%%%%%%%
+utc_start = '2024-01-02 00:00:00 UTC';
+utc_end = '2024-01-02 04:00:00 UTC';
+et = cspice_str2et( {utc_start, utc_end} );
+cnfine = cspice_wninsd( et(1), et(2) );
+
+%
+% Search using a step size of 1 day (in units of
+% seconds).  The reference value is 400000 km.
+% We're not using the adjustment feature, so
+% we set `adjust' to zero.
+%
+target = 'MARS';
+abcorr = 'CN';
+
+%
+% Select a 3-minute step. We'll ignore any occultations
+% lasting less than 3 minutes.
+%
+step    = 180.;
+occtyp  = 'any';
+front   = target;
+fshape  = 'ellipsoid';
+fframe  = 'iau_mars';
+back    = sc_id;
+bshape  = 'point';
+bframe  = 'null';
+obsrvr  = 'DSS-24';
+MAXWIN = 1000;
+
+result = cspice_gfoclt( occtyp, front,  fshape, fframe,          ...
+                     back,   bshape, bframe, abcorr,          ...
+                     obsrvr, step,   cnfine, MAXWIN );
+                
+fprintf('DSS-24 Occultation Times for %s between %s and %s \n', sc_name, utc_start, utc_end);
+fprintf('[%0.5f, %0.5f]\n', result);
+
+
 
 
 cspice_kclear;

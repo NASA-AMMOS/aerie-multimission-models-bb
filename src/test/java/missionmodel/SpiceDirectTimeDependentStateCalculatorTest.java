@@ -61,7 +61,7 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     stateCalculatorCaching = new SpiceDirectTimeDependentStateCalculator(listOfBodies, true);
     stateCalculatorNoCaching = new SpiceDirectTimeDependentStateCalculator(listOfBodies, false);
   }
-  
+
   @Test
   public void testGetState() {
     try{
