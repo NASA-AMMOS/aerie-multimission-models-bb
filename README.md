@@ -29,7 +29,7 @@ occultations, and periapsis and apoapsis times.
 
 Since the geometry model requires SPICE data to work, you'll need to include kernels for your spacecraft trajectory and
 any other bodies to which you are computing relative geometry. There are some [example kernels](spice/kernels) included
-in this repository for the Juno mission you can use to try out the model. When you are ready to use your own kernels,
+in this repository for the Mars Reconnaissance Orbiter (MRO) mission you can use to try out the model. When you are ready to use your own kernels,
 you will want to update the [latest_meta_kernel.tm](spice/kernels/latest_meta_kernel.tm) file to point to your kernels.
 
 Note: In order for Aerie to read SPICE files, you must mount a folder on your filesystem so that it’s shared with the
@@ -41,8 +41,7 @@ Bodies and geometric quantities you want to calculate are all configured in the 
 which gets bundled into the mission model jar when you compile the model.
 
 Finally, in order to point the model to the right spacecraft to compute geometry against, you need to tell the model the
-SPICE ID of that spacecraft. You can either do this via simulation configuration after you have uploaded the model or change
-the default value in the [Configuration](src/main/java/missionmodel/Configuration.java) class.
+SPICE ID of that spacecraft. You can do that by changing the value of SPICE_SCID within the [Mission](src/main/java/missionmodel/Mission.java) class. 
 
 ## Acknowledgements
 
