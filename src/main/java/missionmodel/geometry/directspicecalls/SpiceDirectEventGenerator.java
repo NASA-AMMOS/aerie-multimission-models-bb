@@ -1,5 +1,6 @@
 package missionmodel.geometry.directspicecalls;
 
+import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.Body;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.interfaces.FunctionWithGeometricException;
@@ -22,6 +23,11 @@ public class SpiceDirectEventGenerator implements GeometricEventGenerator {
 
   public SpiceDirectEventGenerator() {
     this.stateCalculator = new SpiceDirectTimeDependentStateCalculator(false);
+    this.bodiesMap = this.stateCalculator.getBodiesMap();
+  }
+
+  public SpiceDirectEventGenerator(Map<String, Body> bodiesMap) {
+    this.stateCalculator = new SpiceDirectTimeDependentStateCalculator(bodiesMap, false);
     this.bodiesMap = this.stateCalculator.getBodiesMap();
   }
 

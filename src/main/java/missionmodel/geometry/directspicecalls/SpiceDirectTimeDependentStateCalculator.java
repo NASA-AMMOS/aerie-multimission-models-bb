@@ -361,7 +361,9 @@ public class SpiceDirectTimeDependentStateCalculator implements TimeDependentSta
       }
     }
     try {
-      Rotation J2000ToFrame = new Rotation(CSPICE.pxform("J2000", getStringFromBodiesMap(target, Body::getNAIFBodyFrame), et.toET()), 1);
+      double t_et = et.toET();
+      double[][] m = CSPICE.pxform("J2000", getStringFromBodiesMap(target, Body::getNAIFBodyFrame), t_et);
+      Rotation J2000ToFrame = new Rotation(m, 1);
       Vector3D[] stateVector = getState(et, observer, target, abcorr);
       Vector3D inertialSpacecraftPosition = J2000ToFrame.applyTo(stateVector[0]);
       Vector3D inertialSpacecraftVelocity = J2000ToFrame.applyTo(stateVector[1]);
