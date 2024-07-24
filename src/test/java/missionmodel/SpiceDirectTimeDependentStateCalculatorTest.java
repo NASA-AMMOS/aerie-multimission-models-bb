@@ -4,6 +4,7 @@ import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalcu
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.returnedobjects.*;
 import missionmodel.geometry.spiceinterpolation.Body;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import gov.nasa.jpl.time.Time;
@@ -33,7 +34,8 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
   private final String target = "MARS";
   private final String abcorr = "LT+S";
 
-  public SpiceDirectTimeDependentStateCalculatorTest(){
+  @BeforeAll
+  static void beforeAll() {
     // The test kernel set has the following valid data interval for MRO, which is the limiting case
     // Body: MARS RECON ORBITER (-74)
     // Start of Interval (ET)              End of Interval (ET)
@@ -59,7 +61,7 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     stateCalculatorCaching = new SpiceDirectTimeDependentStateCalculator(listOfBodies, true);
     stateCalculatorNoCaching = new SpiceDirectTimeDependentStateCalculator(listOfBodies, false);
   }
-
+  
   @Test
   public void testGetState() {
     try{
