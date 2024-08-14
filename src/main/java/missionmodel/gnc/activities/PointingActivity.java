@@ -79,13 +79,13 @@ public class PointingActivity {
     // Target body as a BodyCenterPrimaryTarget
     // (breadcrumbs: this is the same calculation as model.geometryResources.BODY_POS_ICRF and .BODY_VEL_ICRF
     BodyCenterPrimaryTarget bbPrimaryTarget = new BodyCenterPrimaryTarget(primaryTargetBodyName,
-      Configuration.DEFAULT_SPICE_SCID.toString(), // TODO: In our Mission this is an int ... Blackbird is expecting a String?
+      Configuration.DEFAULT_SPICE_SCID, // TODO: In our Mission this is an int ... Blackbird is expecting a String?
       "J2000" // TODO: Are we using J2000?
     );
 
     // Same for secondary target
     BodyCenterSecondaryTarget bbSecondaryTarget = new BodyCenterSecondaryTarget(secondaryTargetBodyName,
-      Configuration.DEFAULT_SPICE_SCID.toString(), // TODO: In our Mission this is an int ... Blackbird is expecting a String?
+      Configuration.DEFAULT_SPICE_SCID, // TODO: In our Mission this is an int ... Blackbird is expecting a String?
       "J2000", // TODO: Are we using J2000?
       bbPrimaryTarget
     );
