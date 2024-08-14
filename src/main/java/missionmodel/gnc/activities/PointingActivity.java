@@ -1,9 +1,6 @@
 package missionmodel.gnc.activities;
 
-import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
-import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects;
-import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteResources;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.ActivityType;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.Export;
 import gov.nasa.jpl.time.Duration;
@@ -11,26 +8,16 @@ import gov.nasa.jpl.time.Time;
 import missionmodel.Configuration;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.Mission;
-import missionmodel.geometry.directspicecalls.SpiceDirectEventGenerator;
-import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
-import missionmodel.geometry.resources.GenericGeometryResources;
-import missionmodel.geometry.spiceinterpolation.Body;
-import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
 import missionmodel.gnc.blackbird.functions.AttitudeNotAvailableException;
-import missionmodel.gnc.blackbird.interfaces.Observer;
 import missionmodel.gnc.blackbird.interfaces.Orientation;
-import missionmodel.gnc.blackbird.interfaces.Target;
 import missionmodel.gnc.blackbird.mmgenerator.GenerateNoRateMatchAttitudeModel;
 import missionmodel.gnc.blackbird.observers.CustomObserver;
-import missionmodel.gnc.blackbird.observers.SpacecraftInstrumentObserver;
 import missionmodel.gnc.blackbird.targets.primary.BodyCenterPrimaryTarget;
 import missionmodel.gnc.blackbird.targets.secondary.BodyCenterSecondaryTarget;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.SortedMap;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
@@ -79,13 +66,13 @@ public class PointingActivity {
     // Target body as a BodyCenterPrimaryTarget
     // (breadcrumbs: this is the same calculation as model.geometryResources.BODY_POS_ICRF and .BODY_VEL_ICRF
     BodyCenterPrimaryTarget bbPrimaryTarget = new BodyCenterPrimaryTarget(primaryTargetBodyName,
-      Configuration.DEFAULT_SPICE_SCID, // TODO: In our Mission this is an int ... Blackbird is expecting a String?
+      model.configuration.spacecraftIdString(),
       "J2000" // TODO: Are we using J2000?
     );
 
     // Same for secondary target
     BodyCenterSecondaryTarget bbSecondaryTarget = new BodyCenterSecondaryTarget(secondaryTargetBodyName,
-      Configuration.DEFAULT_SPICE_SCID, // TODO: In our Mission this is an int ... Blackbird is expecting a String?
+      model.configuration.spacecraftIdString(),
       "J2000", // TODO: Are we using J2000?
       bbPrimaryTarget
     );

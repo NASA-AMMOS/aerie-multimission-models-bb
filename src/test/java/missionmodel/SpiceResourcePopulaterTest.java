@@ -42,7 +42,7 @@ public class SpiceResourcePopulaterTest {
     // 2024 JAN 01 00:01:10.000            2024 MAY 06 10:40:00.000
     Instant planStart = Instant.parse("2024-01-02T00:00:00Z");
     // Model configuration can be provided directly, just as for a normal Java class constructor.
-    this.model = new Mission(registrar, planStart, new Configuration());
+    this.model = new Mission(registrar, planStart, Configuration.defaultConfiguration());
   }
 
   @Test

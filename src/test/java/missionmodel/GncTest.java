@@ -36,9 +36,9 @@ public class GncTest {
 
     // Input configuration
     //String currentDir = System.getProperty("user.dir");
-    final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
+      final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
     final Integer scid = -61; // Juno
-    final Configuration geomConfig = new Configuration(geomConfigPath, scid);
+    final Configuration geomConfig = new Configuration(scid, "JUNO", geomConfigPath);
 
     // Add Activities to Plan
     final Map<ActivityDirectiveId, ActivityDirective> schedule = new HashMap<>();
