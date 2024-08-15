@@ -1,5 +1,6 @@
 package missionmodel;
 
+import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -19,6 +20,8 @@ import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -27,18 +30,21 @@ import java.util.Map;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
 
+@ExtendWith(MerlinExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test
   void testSimulation() {
-    final var simulationStartTime = Instant.now();
+    final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
     // Input configuration
     //String currentDir = System.getProperty("user.dir");
-      final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
-    final Integer scid = -61; // Juno
-    final Configuration geomConfig = new Configuration(scid, "JUNO", geomConfigPath);
+//      final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
+//    final Integer scid = -61; // Juno
+//    final Configuration geomConfig = new Configuration(scid, "JUNO", geomConfigPath);
+    final Configuration geomConfig = Configuration.defaultConfiguration();
 
     // Add Activities to Plan
     final Map<ActivityDirectiveId, ActivityDirective> schedule = new HashMap<>();
@@ -46,7 +52,8 @@ public class GncTest {
         schedule.put(new ActivityDirectiveId(1L), new ActivityDirective(
                 Duration.of(10, SECONDS),
                 "PointToTargetBody",
-                Map.of("primaryTargetBodyName", SerializedValue.of("JUPITER")),
+                Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
+                       "secondaryTargetBodyName", SerializedValue.of("SUN")),
                 null,
                 true
         ));

@@ -87,6 +87,25 @@ public class GeometrySpawnersTest {
       true
     ));
 
+    schedule.put(new ActivityDirectiveId(5L), new ActivityDirective(
+      Duration.of(10, SECONDS),
+      "PointToTargetBody",
+      Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
+             "secondaryTargetBodyName", SerializedValue.of("SUN")),
+      null,
+      true
+    ));
+
+    schedule.put(new ActivityDirectiveId(6L), new ActivityDirective(
+      Duration.of(2, HOURS),
+      "PointToTargetBody",
+      Map.of("primaryTargetBodyName", SerializedValue.of("SUN"),
+        "secondaryTargetBodyName", SerializedValue.of("EARTH")),
+      null,
+      true
+    ));
+
+
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
 
     // Store off activity types of all simulated activities

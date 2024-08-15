@@ -11,6 +11,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
+import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.discrete;
 
 public class GncDataModel {
@@ -25,5 +26,9 @@ public class GncDataModel {
     registrar.discrete("PointingRotation", PointingRotation, new DoubleValueMapper());
     IsSlewing = resource(discrete(Boolean.FALSE));
     registrar.discrete("IsSlewing", IsSlewing, new BooleanValueMapper());
+  }
+
+  public String currentToString() {
+    return "Pointing axis: " + currentValue(PointingAxis) + ", PointingRotation: " + currentValue(PointingRotation);
   }
 }

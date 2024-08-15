@@ -18,6 +18,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import java.util.List;
 import java.util.SortedMap;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
@@ -27,9 +28,9 @@ import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 @ActivityType("PointToTargetBody")
 public class PointingActivity {
   @Export.Parameter
-  public String primaryTargetBodyName = "";
+  public String primaryTargetBodyName = "SUN";
   @Export.Parameter
-  public String secondaryTargetBodyName = "";
+  public String secondaryTargetBodyName = "EARTH";
 
   @ActivityType.EffectModel
   public void run(Mission model) {
@@ -57,6 +58,7 @@ public class PointingActivity {
     Double rotation = currentValue(model.gncDataModel.PointingRotation);
     Vector3D axis = currentValue(model.gncDataModel.PointingAxis);
     Orientation startingOrientation = new Orientation(new Rotation(axis, rotation, RotationConvention.VECTOR_OPERATOR));
+    System.out.println("Slewing from " + model.gncDataModel.currentToString() + ", " + toString(startingOrientation));
 
     // For now, we'll pretend we are looking straight through the spacecraft's Y axis, with a secondary axis straight off Z
     // TODO: Get pointing axis for specific instrument, or from spacecraft geometry
@@ -80,8 +82,8 @@ public class PointingActivity {
     // This uses the simpler BB model that assumes the slew starts/stops at zero velocity and does not match the current rates
     // TODO: No idea what the appropriate sampling rates and velocities are here - or what the units are
     GenerateNoRateMatchAttitudeModel attitudeModel = new GenerateNoRateMatchAttitudeModel(
-      new Vector3D(100,100,100),  // Angular velocity limit - should be set elsewhere in the mission model
-      new Vector3D(100, 100, 100), // Angular acceleration limit - should be set elsewhere in the mission model
+      new Vector3D(1,1,1),  // Angular velocity limit - should be set elsewhere in the mission model
+      new Vector3D(1, 1, 1), // Angular acceleration limit - should be set elsewhere in the mission model
       gov.nasa.jpl.time.Duration.fromSeconds(1),  // Step size for the forward differencing calculation - 1 second ???
       gov.nasa.jpl.time.Duration.fromSeconds(10) // Sample rate for the returned values - 10 seconds ???
     );
@@ -107,7 +109,7 @@ public class PointingActivity {
       Time previousTime = bbSlewData.firstKey();
       for (Time t : bbSlewData.keySet()) {
         System.out.println(t);
-        System.out.println(bbSlewData.get(t));
+        System.out.println(toString(bbSlewData.get(t)));
 
         DiscreteEffects.set(model.gncDataModel.IsSlewing, Boolean.TRUE);
 
@@ -126,5 +128,12 @@ public class PointingActivity {
       // TODO: Bail?
       e.printStackTrace();
     }
+  }
+
+  public static String toString(Rotation r) {
+    return "Rotation(" + String.join(", ", List.of(""+r.getQ0(), ""+r.getQ1(), ""+r.getQ2(), ""+r.getQ3())) + ")";
+  }
+  public static String toString(Orientation o) {
+    return "Orientation(" + toString(o.getRotation()) + ", " + "RotationRate" + o.getRotationRate() + ")";
   }
 }
