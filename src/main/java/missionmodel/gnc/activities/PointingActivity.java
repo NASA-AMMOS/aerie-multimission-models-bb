@@ -8,9 +8,11 @@ import gov.nasa.jpl.time.Time;
 import missionmodel.Configuration;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.Mission;
+import missionmodel.gnc.GncDataModel;
 import missionmodel.gnc.blackbird.functions.AttitudeNotAvailableException;
 import missionmodel.gnc.blackbird.interfaces.Orientation;
 import missionmodel.gnc.blackbird.mmgenerator.GenerateNoRateMatchAttitudeModel;
+import missionmodel.gnc.blackbird.mmgenerator.GenerateRateMatchAttitudeModel;
 import missionmodel.gnc.blackbird.observers.CustomObserver;
 import missionmodel.gnc.blackbird.targets.primary.BodyCenterPrimaryTarget;
 import missionmodel.gnc.blackbird.targets.secondary.BodyCenterSecondaryTarget;
@@ -27,6 +29,12 @@ import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 @ActivityType("PointToTargetBody")
 public class PointingActivity {
+  @Export.Parameter
+  public String primaryObserverString = "X";
+  public Vector3D primaryObserver = GncDataModel.X;
+  @Export.Parameter
+  public String secondaryObserverString = "Y";
+  public Vector3D secondaryObserver = GncDataModel.Y;
   @Export.Parameter
   public String primaryTargetBodyName = "SUN";
   @Export.Parameter
@@ -55,15 +63,20 @@ public class PointingActivity {
 
     // ---Massage data for the Blackbird GNC model
     // Starting spacecraft orientation as an Orientation
+    Vector3D previousPrimaryObserver = currentValue(model.gncDataModel.primaryObserver);
+    Vector3D previousSecondaryObserver = currentValue(model.gncDataModel.secondaryObserver);
+    String previousPrimaryTarget = currentValue(model.gncDataModel.primaryTarget);
+    String previousSecondaryTarget = currentValue(model.gncDataModel.secondaryTarget);
     Double rotation = currentValue(model.gncDataModel.PointingRotation);
     Vector3D axis = currentValue(model.gncDataModel.PointingAxis);
-    Orientation startingOrientation = new Orientation(new Rotation(axis, rotation, RotationConvention.VECTOR_OPERATOR));
+    Vector3D rotationRate = currentValue(model.gncDataModel.RotationRate);
+    Orientation startingOrientation = new Orientation(new Rotation(axis, rotation, RotationConvention.VECTOR_OPERATOR), rotationRate);
     System.out.println("Slewing from " + model.gncDataModel.currentToString() + ", " + toString(startingOrientation));
 
     // For now, we'll pretend we are looking straight through the spacecraft's Y axis, with a secondary axis straight off Z
     // TODO: Get pointing axis for specific instrument, or from spacecraft geometry
-    CustomObserver bbSpacecraftObserver = new CustomObserver(new Vector3D(0, 1, 0));
-    CustomObserver bbSpacecraftSecondaryObserver = new CustomObserver(new Vector3D(0, 0, 1));
+    CustomObserver bbSpacecraftObserver = new CustomObserver(primaryObserver);
+    CustomObserver bbSpacecraftSecondaryObserver = new CustomObserver(secondaryObserver);
 
     // Target body as a BodyCenterPrimaryTarget
     // (breadcrumbs: this is the same calculation as model.geometryResources.BODY_POS_ICRF and .BODY_VEL_ICRF
@@ -82,10 +95,12 @@ public class PointingActivity {
     // This uses the simpler BB model that assumes the slew starts/stops at zero velocity and does not match the current rates
     // TODO: No idea what the appropriate sampling rates and velocities are here - or what the units are
     GenerateNoRateMatchAttitudeModel attitudeModel = new GenerateNoRateMatchAttitudeModel(
-      new Vector3D(1,1,1),  // Angular velocity limit - should be set elsewhere in the mission model
-      new Vector3D(1, 1, 1), // Angular acceleration limit - should be set elsewhere in the mission model
+      Configuration.ANGULAR_VELOCITY_LIMIT,
+      Configuration.ANGULAR_ACCELERATION_LIMIT,
       gov.nasa.jpl.time.Duration.fromSeconds(1),  // Step size for the forward differencing calculation - 1 second ???
-      gov.nasa.jpl.time.Duration.fromSeconds(10) // Sample rate for the returned values - 10 seconds ???
+      gov.nasa.jpl.time.Duration.fromSeconds(10)//, // Sample rate for the returned values - 10 seconds ???
+//      true,  // whether to throw exception if not enough time for slew
+//      true   // whether to truncate
     );
 
     try {
@@ -106,6 +121,15 @@ public class PointingActivity {
       Time endOfActivity = bbSlewData.lastKey();
       System.out.println("End of Activity: " + endOfActivity.toString());
 
+      primaryObserver = GncDataModel.observerForString(primaryObserverString);
+      secondaryObserver = GncDataModel.observerForString(secondaryObserverString);
+      set(model.gncDataModel.primaryObserverString, primaryObserverString);
+      set(model.gncDataModel.primaryObserver, primaryObserver);
+      set(model.gncDataModel.primaryTarget, primaryTargetBodyName);
+      set(model.gncDataModel.secondaryObserver, secondaryObserver);
+      set(model.gncDataModel.secondaryObserverString, secondaryObserverString);
+      set(model.gncDataModel.secondaryTarget, secondaryTargetBodyName);
+
       Time previousTime = bbSlewData.firstKey();
       for (Time t : bbSlewData.keySet()) {
         System.out.println(t);
@@ -121,6 +145,7 @@ public class PointingActivity {
         Rotation newRotation = newOrientation.getRotation();
         DiscreteEffects.set(model.gncDataModel.PointingAxis, newRotation.getAxis(RotationConvention.VECTOR_OPERATOR));
         DiscreteEffects.set(model.gncDataModel.PointingRotation, newRotation.getAngle());
+        DiscreteEffects.set(model.gncDataModel.RotationRate, newOrientation.getRotationRate());
       }
 
       DiscreteEffects.set(model.gncDataModel.IsSlewing, Boolean.FALSE);
@@ -134,6 +159,6 @@ public class PointingActivity {
     return "Rotation(" + String.join(", ", List.of(""+r.getQ0(), ""+r.getQ1(), ""+r.getQ2(), ""+r.getQ3())) + ")";
   }
   public static String toString(Orientation o) {
-    return "Orientation(" + toString(o.getRotation()) + ", " + "RotationRate" + o.getRotationRate() + ")";
+    return "Orientation(" + toString(o.getRotation()) + ", " + "RotationRate " + o.getRotationRate() + ")";
   }
 }

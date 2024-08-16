@@ -30,8 +30,8 @@ import java.util.Map;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
 
-@ExtendWith(MerlinExtension.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@ExtendWith(MerlinExtension.class)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test
@@ -53,7 +53,9 @@ public class GncTest {
                 Duration.of(10, SECONDS),
                 "PointToTargetBody",
                 Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
-                       "secondaryTargetBodyName", SerializedValue.of("SUN")),
+                       "secondaryTargetBodyName", SerializedValue.of("SUN"),
+                       "primaryObserverString", SerializedValue.of("X"),
+                       "secondaryObserverString", SerializedValue.of("Z")),
                 null,
                 true
         ));
