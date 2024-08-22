@@ -1,9 +1,7 @@
 package missionmodel;
 
-import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,14 +16,6 @@ import gov.nasa.jpl.aerie.merlin.driver.SimulationDriver;
 import gov.nasa.jpl.aerie.merlin.driver.SimulationResults;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;

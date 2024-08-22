@@ -3,7 +3,6 @@ package missionmodel.gnc;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.BooleanValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.DoubleValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.StringValueMapper;
-import gov.nasa.jpl.aerie.contrib.serialization.mappers.Vector3DValueMapper;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
 import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;

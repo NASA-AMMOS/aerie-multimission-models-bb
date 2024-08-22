@@ -2,7 +2,6 @@ package missionmodel;
 
 
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
-import gov.nasa.jpl.time.Duration;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
 import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
@@ -38,7 +37,7 @@ public final class Mission {
 
   public static final Path VERSIONED_KERNELS_ROOT_DIRECTORY = Path.of(System.getenv().getOrDefault("SPICE_DIRECTORY", "spice/kernels"));
 
-  public static final String NAIF_META_KERNEL_PATH = VERSIONED_KERNELS_ROOT_DIRECTORY.toString() + "/latest_meta_kernel.tm";
+  public static final String NAIF_META_KERNEL_PATH = VERSIONED_KERNELS_ROOT_DIRECTORY + "/latest_meta_kernel.tm";
 
 
   // --------------------------------
