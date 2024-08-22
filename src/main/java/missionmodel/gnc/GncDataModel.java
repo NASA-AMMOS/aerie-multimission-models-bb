@@ -55,9 +55,10 @@ public class GncDataModel {
 
   private static DoubleValueMapper dvm = new DoubleValueMapper();
   private static void registerVector(Registrar registrar, String name, Resource<Discrete<Vector3D>> r) {
-    registrar.discrete(name + "_X", map(r, v -> v.getX()), dvm);
-    registrar.discrete(name + "_Y", map(r, v -> v.getY()), dvm);
-    registrar.discrete(name + "_Z", map(r, v -> v.getZ()), dvm);
+    registrar.discrete(name + "_X", map(r, v -> v == null ? null : v.getX()), dvm);
+    registrar.discrete(name + "_Y", map(r, v -> v == null ? null : v.getY()), dvm);
+    registrar.discrete(name + "_Z", map(r, v -> v == null ? null : v.getZ()), dvm);
+    registrar.discrete(name + "_magnitude", map(r, v -> v == null ? null : Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ())), dvm);
   }
 
   public String currentToString() {

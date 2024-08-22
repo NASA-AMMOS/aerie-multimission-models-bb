@@ -87,7 +87,7 @@ public class Body {
     return (Math.max(radii[0],radii[1]) + radii[2])/2;
   }
 
-  public double getMu(){
+  public Double getMu(){
     return mu;
   }
 

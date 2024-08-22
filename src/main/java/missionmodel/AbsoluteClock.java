@@ -12,7 +12,7 @@ public class AbsoluteClock {
 
   private Instant startTime;
 
-  AbsoluteClock(final Instant startTime) {
+  public AbsoluteClock(final Instant startTime) {
     this.startTime = startTime;
   }
 
