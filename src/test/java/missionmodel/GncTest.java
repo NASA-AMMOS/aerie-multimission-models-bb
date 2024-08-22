@@ -30,8 +30,6 @@ import java.util.Map;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
 
-//@ExtendWith(MerlinExtension.class)
-//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test
@@ -40,10 +38,6 @@ public class GncTest {
     final var simulationDuration = Duration.of(96, HOURS);
 
     // Input configuration
-    //String currentDir = System.getProperty("user.dir");
-//      final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
-//    final Integer scid = -61; // Juno
-//    final Configuration geomConfig = new Configuration(scid, "JUNO", geomConfigPath);
     final Configuration geomConfig = Configuration.defaultConfiguration();
 
     // Add Activities to Plan
@@ -61,7 +55,6 @@ public class GncTest {
         ));
 
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
-//    System.out.println(results);
   }
 
   public SimulationResults simulate(
