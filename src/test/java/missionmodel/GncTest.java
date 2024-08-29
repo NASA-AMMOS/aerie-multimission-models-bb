@@ -16,10 +16,12 @@ import gov.nasa.jpl.aerie.merlin.driver.SimulationDriver;
 import gov.nasa.jpl.aerie.merlin.driver.SimulationResults;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
+import org.junit.jupiter.api.TestInstance;
 
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test

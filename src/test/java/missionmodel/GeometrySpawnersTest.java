@@ -5,6 +5,7 @@ import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
 import missionmodel.generated.GeneratedModelType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Map;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GeometrySpawnersTest {
 
   private final String sc_id = "-74"; // MRO
