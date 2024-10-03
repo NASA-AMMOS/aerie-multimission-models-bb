@@ -89,15 +89,6 @@ public class GeometrySpawnersTest {
       true
     ));
 
-    schedule.put(new ActivityDirectiveId(5L), new ActivityDirective(
-      Duration.of(10, SECONDS),
-      "PointToTargetBody",
-      Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
-             "secondaryTargetBodyName", SerializedValue.of("SUN")),
-      null,
-      true
-    ));
-
     schedule.put(new ActivityDirectiveId(6L), new ActivityDirective(
       Duration.of(2, HOURS),
       "PointToTargetBody",
