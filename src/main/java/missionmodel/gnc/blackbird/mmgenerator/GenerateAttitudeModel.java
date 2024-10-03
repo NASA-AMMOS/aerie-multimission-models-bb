@@ -116,6 +116,14 @@ public abstract class GenerateAttitudeModel implements ADCModel{
         // Find the first rotation that puts the primary observer on the primary target
         Rotation primaryRotation = getRotation(primaryObserver.getPointing(), primaryTargetDirection);
 
+        if (secondaryObserver == null || secondaryObserver.equals(primaryObserver)) {
+          if (primaryRotation.getQ0() < 0){
+            primaryRotation = new Rotation(primaryRotation.getQ0()*-1, primaryRotation.getQ1()*-1,
+              primaryRotation.getQ2()*-1, primaryRotation.getQ3()*-1, false);
+          }
+          return primaryRotation;
+        }
+        
         // To find the second rotation you must first get the secondary observer in
         // the spacecraft frame that has been rotated by the primary rotation
         Vector3D secondaryObserverIntermediateFrame =  primaryRotation.applyTo(secondaryObserver.getPointing());

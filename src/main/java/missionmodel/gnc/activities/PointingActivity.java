@@ -11,6 +11,7 @@ import missionmodel.Mission;
 import missionmodel.gnc.GncDataModel;
 import missionmodel.gnc.blackbird.functions.AttitudeNotAvailableException;
 import missionmodel.gnc.blackbird.interfaces.Orientation;
+import missionmodel.gnc.blackbird.mmgenerator.GenerateAttitudeModel;
 import missionmodel.gnc.blackbird.mmgenerator.GenerateNoRateMatchAttitudeModel;
 import missionmodel.gnc.blackbird.mmgenerator.GenerateRateMatchAttitudeModel;
 import missionmodel.gnc.blackbird.observers.CustomObserver;
@@ -29,12 +30,13 @@ import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 @ActivityType("PointToTargetBody")
 public class PointingActivity {
+  public static boolean debug = false;
   @Export.Parameter
   public String primaryObserverString = "X";
-  public Vector3D primaryObserver = GncDataModel.X;
+  public Vector3D primaryObserver = GncDataModel.X; // looked up from primaryObserverString
   @Export.Parameter
   public String secondaryObserverString = "Y";
-  public Vector3D secondaryObserver = GncDataModel.Y;
+  public Vector3D secondaryObserver = GncDataModel.Y; // looked up from secondaryObserverString
   @Export.Parameter
   public String primaryTargetBodyName = "SUN";
   @Export.Parameter
@@ -44,6 +46,9 @@ public class PointingActivity {
   public void run(Mission model) {
     // TODO: Verify time scale is the same as Blackbird (99% yes)
     Time activityStartTime = JPLTimeConvertUtility.nowJplTime(model.absoluteClock);
+
+    primaryObserver = GncDataModel.observerForString(primaryObserverString);
+    secondaryObserver = GncDataModel.observerForString(secondaryObserverString);
 
 //    // Get body geometry at the start of this activity
 //    Body targetBody = model.spiceResPop.getBodies().get(primaryTargetBodyName);
@@ -70,8 +75,11 @@ public class PointingActivity {
     Double rotation = currentValue(model.gncDataModel.PointingRotation);
     Vector3D axis = currentValue(model.gncDataModel.PointingAxis);
     Vector3D rotationRate = currentValue(model.gncDataModel.RotationRate);
+    if (rotationRate == null || rotationRate == Vector3D.NaN) {
+      rotationRate = Vector3D.ZERO;
+    }
     Orientation startingOrientation = new Orientation(new Rotation(axis, rotation, RotationConvention.VECTOR_OPERATOR), rotationRate);
-    System.out.println("Slewing from " + model.gncDataModel.currentToString() + ", " + toString(startingOrientation));
+    if (debug) System.out.println("Slewing from " + model.gncDataModel.currentToString() + ", " + toString(startingOrientation));
 
     // For now, we'll pretend we are looking straight through the spacecraft's Y axis, with a secondary axis straight off Z
     // TODO: Get pointing axis for specific instrument, or from spacecraft geometry
@@ -94,17 +102,29 @@ public class PointingActivity {
 
     // This uses the simpler BB model that assumes the slew starts/stops at zero velocity and does not match the current rates
     // TODO: No idea what the appropriate sampling rates and velocities are here - or what the units are
-    GenerateNoRateMatchAttitudeModel attitudeModel = new GenerateNoRateMatchAttitudeModel(
-      Configuration.ANGULAR_VELOCITY_LIMIT,
-      Configuration.ANGULAR_ACCELERATION_LIMIT,
-      gov.nasa.jpl.time.Duration.fromSeconds(1),  // Step size for the forward differencing calculation - 1 second ???
-      gov.nasa.jpl.time.Duration.fromSeconds(10)//, // Sample rate for the returned values - 10 seconds ???
+    GenerateAttitudeModel attitudeModel;
+    if (model.configuration.gncRateMatching()) {
+      attitudeModel = new GenerateRateMatchAttitudeModel(
+        listToVector(model.configuration.gncAngularVelocityLimit()),
+        listToVector(model.configuration.gncAngularAccelerationLimit()),
+        gov.nasa.jpl.time.Duration.fromSeconds(1),  // Step size for the forward differencing calculation - 1 second ???
+        gov.nasa.jpl.time.Duration.fromSeconds(10)//, // Sample rate for the returned values - 10 seconds ???
+//        true,  // whether to throw exception if not enough time for slew
+//        true   // whether to truncate
+      );
+    } else {
+      attitudeModel = new GenerateNoRateMatchAttitudeModel(
+        listToVector(model.configuration.gncAngularVelocityLimit()),
+        listToVector(model.configuration.gncAngularAccelerationLimit()),
+        gov.nasa.jpl.time.Duration.fromSeconds(1),  // Step size for the forward differencing calculation - 1 second ???
+        gov.nasa.jpl.time.Duration.fromSeconds(10)//, // Sample rate for the returned values - 10 seconds ???
 //      true,  // whether to throw exception if not enough time for slew
 //      true   // whether to truncate
-    );
+      );
+    }
 
     try {
-      System.out.println("Generating Slew");
+      if (debug) System.out.println("Generating Slew");
 
       // Generate the orientations for this pointing activity
       SortedMap<Time, Orientation> bbSlewData = attitudeModel.getOrientations(
@@ -119,10 +139,8 @@ public class PointingActivity {
 
       // Spew them out as a series of Aerie DiscreteEffects
       Time endOfActivity = bbSlewData.lastKey();
-      System.out.println("End of Activity: " + endOfActivity.toString());
+      if (debug) System.out.println("End of Activity: " + endOfActivity.toString());
 
-      primaryObserver = GncDataModel.observerForString(primaryObserverString);
-      secondaryObserver = GncDataModel.observerForString(secondaryObserverString);
       set(model.gncDataModel.primaryObserverString, primaryObserverString);
       set(model.gncDataModel.primaryObserver, primaryObserver);
       set(model.gncDataModel.primaryTarget, primaryTargetBodyName);
@@ -132,8 +150,8 @@ public class PointingActivity {
 
       Time previousTime = bbSlewData.firstKey();
       for (Time t : bbSlewData.keySet()) {
-        System.out.println(t);
-        System.out.println(toString(bbSlewData.get(t)));
+        if (debug) System.out.println(t);
+        if (debug) System.out.println(toString(bbSlewData.get(t)));
 
         DiscreteEffects.set(model.gncDataModel.IsSlewing, Boolean.TRUE);
 
@@ -153,6 +171,10 @@ public class PointingActivity {
       // TODO: Bail?
       e.printStackTrace();
     }
+  }
+
+  private static Vector3D listToVector(List<Double> list) {
+    return new Vector3D(list.get(0), list.get(1), list.get(2));
   }
 
   public static String toString(Rotation r) {

@@ -2,6 +2,7 @@ package missionmodel.geometry.resources;
 
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.*;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
+import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
 import missionmodel.geometry.spiceinterpolation.Body;
@@ -15,6 +16,7 @@ import java.util.Map;
 import static gov.nasa.jpl.aerie.contrib.metadata.UnitRegistrar.withUnit;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.discrete;
+import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad.map;
 
 public class GenericGeometryResources {
 
@@ -87,6 +89,10 @@ public class GenericGeometryResources {
   public Map<String, MutableResource<Discrete<Boolean>>> Periapsis;
   public Map<String, MutableResource<Discrete<Boolean>>> Apoapsis;
 
+  private static DoubleValueMapper dvm = new DoubleValueMapper();
+  private static BooleanValueMapper bvm = new BooleanValueMapper();
+  private static IntegerValueMapper ivm = new IntegerValueMapper();
+
   public GenericGeometryResources(Registrar registrar, Map<String, Body> allBodies) {
     bodyObjects = allBodies;
     bodies = Body.getNamesOfBodies(allBodies);
@@ -125,68 +131,68 @@ public class GenericGeometryResources {
 
     // Non-arrayed resources
     upleg_time = resource(discrete(0.0));
-    registrar.discrete("upleg_time", upleg_time, new DoubleValueMapper());
+    registrar.discrete("upleg_time", upleg_time, dvm);
 
     downleg_time = resource(discrete(0.0));
-    registrar.discrete("downleg_time", downleg_time, new DoubleValueMapper());
+    registrar.discrete("downleg_time", downleg_time, dvm);
 
     spacecraftDeclination = resource(discrete(0.0));
-    registrar.discrete("spacecraftDeclination", spacecraftDeclination, new DoubleValueMapper());
+    registrar.discrete("spacecraftDeclination", spacecraftDeclination, dvm);
 
     spacecraftRightAscension = resource(discrete(0.0));
-    registrar.discrete("spacecraftRightAscension", spacecraftRightAscension, new DoubleValueMapper());
+    registrar.discrete("spacecraftRightAscension", spacecraftRightAscension, dvm);
 
     EarthSunProbeAngle = resource(discrete(0.0));
-    registrar.discrete("EarthSunProbeAngle", EarthSunProbeAngle, new DoubleValueMapper());
+    registrar.discrete("EarthSunProbeAngle", EarthSunProbeAngle, dvm);
 
     AnySpacecraftEclipse = resource(discrete(EclipseTypes.NONE));
     registrar.discrete("AnySpacecraftEclipse", AnySpacecraftEclipse, new EnumValueMapper(EclipseTypes.class));
 
     Occultation = resource(discrete(0));
-    registrar.discrete("Occultation", Occultation, new IntegerValueMapper());
+    registrar.discrete("Occultation", Occultation, ivm);
 
     FractionOfSunNotInEclipse = resource(discrete(1.0));
-    registrar.discrete("FractionOfSunNotInEclipse", FractionOfSunNotInEclipse, new DoubleValueMapper());
+    registrar.discrete("FractionOfSunNotInEclipse", FractionOfSunNotInEclipse, dvm);
 
     LitOrDarkSide = resource(discrete(0));
-    registrar.discrete("LitOrDarkSide", LitOrDarkSide, new IntegerValueMapper());
+    registrar.discrete("LitOrDarkSide", LitOrDarkSide, ivm);
 
     // loop through bodies to build and register arrayed resources
     for (String body : bodies) {
       BODY_POS_ICRF.put(body, resource(discrete( new Vector3D(0.0,0.0,0.0))));
-      registrar.discrete("BODY_POS_ICRF_" + body, BODY_POS_ICRF.get(body), new Vector3DValueMapper(new DoubleValueMapper()));
+      registerVector(registrar, "BODY_POS_ICRF_" + body, BODY_POS_ICRF.get(body));
 
       BODY_VEL_ICRF.put(body, resource(discrete( new Vector3D(0.0,0.0,0.0))));
-      registrar.discrete("BODY_VEL_ICRF_" + body, BODY_VEL_ICRF.get(body), new Vector3DValueMapper(new DoubleValueMapper()));
+      registerVector(registrar, "BODY_VEL_ICRF_" + body, BODY_VEL_ICRF.get(body));
 
       SpacecraftBodyRange.put(body, resource(discrete(0.0)));
-      registrar.discrete("SpacecraftBodyRange_" + body, SpacecraftBodyRange.get(body), withUnit("km", new DoubleValueMapper()));
+      registrar.discrete("SpacecraftBodyRange_" + body, SpacecraftBodyRange.get(body), withUnit("km", dvm));
 
       SpacecraftBodySpeed.put(body, resource(discrete(0.0)));
-      registrar.discrete("SpacecraftBodySpeed_" + body, SpacecraftBodySpeed.get(body), withUnit("km/s", new DoubleValueMapper()));
+      registrar.discrete("SpacecraftBodySpeed_" + body, SpacecraftBodySpeed.get(body), withUnit("km/s", dvm));
 
       SunSpacecraftBodyAngle.put(body, resource(discrete(0.0)));
-      registrar.discrete("SunSpacecraftBodyAngle_" + body, SunSpacecraftBodyAngle.get(body), withUnit("deg", new DoubleValueMapper()));
+      registrar.discrete("SunSpacecraftBodyAngle_" + body, SunSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
 
       SunBodySpacecraftAngle.put(body, resource(discrete(0.0)));
-      registrar.discrete("SunBodySpacecraftAngle_" + body, SunBodySpacecraftAngle.get(body), withUnit("deg", new DoubleValueMapper()));
+      registrar.discrete("SunBodySpacecraftAngle_" + body, SunBodySpacecraftAngle.get(body), withUnit("deg", dvm));
 
       BodyHalfAngleSize.put(body, resource(discrete(0.0)));
-      registrar.discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", new DoubleValueMapper()));
+      registrar.discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", dvm));
 
       if (betaAngleBodies.contains(body)) {
         BetaAngleByBody.put(body, resource(discrete(0.0)));
-        registrar.discrete("BetaAngle_" + body, BetaAngleByBody.get(body), withUnit("deg", new DoubleValueMapper()));
+        registrar.discrete("BetaAngle_" + body, BetaAngleByBody.get(body), withUnit("deg", dvm));
       }
 
       if (earthSpacecraftBodies.contains(body)) {
         EarthSpacecraftBodyAngle.put(body, resource(discrete(0.0)));
-        registrar.discrete("EarthSpacecraftAngle_" + body, EarthSpacecraftBodyAngle.get(body), withUnit("deg", new DoubleValueMapper()));
+        registrar.discrete("EarthSpacecraftAngle_" + body, EarthSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
       }
 
       if (altitudeBodies.contains(body)) {
         SpacecraftAltitude.put(body, resource(discrete(0.0)));
-        registrar.discrete("SpacecraftAltitude_" + body, SpacecraftAltitude.get(body), withUnit("km", new DoubleValueMapper()));
+        registrar.discrete("SpacecraftAltitude_" + body, SpacecraftAltitude.get(body), withUnit("km", dvm));
       }
 
       if (illuminationBodies.contains(body)) {
@@ -194,7 +200,7 @@ public class GenericGeometryResources {
         for (String angle : illumAngles) {
           illumAnglesMap.put(angle, resource(discrete(0.0)));
           registrar.discrete("IlluminationAnglesByBody_" + body + "_" + angle,
-            illumAnglesMap.get(angle), withUnit("deg", new DoubleValueMapper()));
+            illumAnglesMap.get(angle), withUnit("deg", dvm));
         }
         IlluminationAnglesByBody.put(body, illumAnglesMap);
       }
@@ -204,16 +210,16 @@ public class GenericGeometryResources {
         for (String angle : raDecIndices) {
           EarthRaDecMap.put(angle, resource(discrete(0.0)));
           registrar.discrete("EarthRaDecByBody_" + body + "_" + angle,
-            EarthRaDecMap.get(angle), withUnit("deg", new DoubleValueMapper()));
+            EarthRaDecMap.get(angle), withUnit("deg", dvm));
         }
         EarthRaDecByBody.put(body, EarthRaDecMap);
         EarthRaDeltaWithSCByBody.put(body, resource(discrete(0.0)));
-        registrar.discrete("EarthRaDeltaWithSCByBody_" + body, EarthRaDeltaWithSCByBody.get(body), withUnit("deg", new DoubleValueMapper()));
+        registrar.discrete("EarthRaDeltaWithSCByBody_" + body, EarthRaDeltaWithSCByBody.get(body), withUnit("deg", dvm));
       }
 
       if (subSolarBodies.contains(body)) {
         BodySubSolarPoint.put(body, resource(discrete( new Vector3D(0.0,0.0,0.0))));
-        registrar.discrete("BodySubSolarPoint_" + body, BodySubSolarPoint.get(body), new Vector3DValueMapper(new DoubleValueMapper()));
+        registerVector(registrar, "BodySubSolarPoint_" + body, BodySubSolarPoint.get(body));
       }
 
       if (subSCBodies.contains(body)) {
@@ -221,7 +227,7 @@ public class GenericGeometryResources {
         for (String index : subSCIndices) {
           subSCMap.put(index, resource(discrete(0.0)));
           registrar.discrete("subSCBodies_" + body + "_" + index,
-            subSCMap.get(index), new DoubleValueMapper());
+            subSCMap.get(index), dvm);
         }
         BodySubSCPoint.put(body, subSCMap);
       }
@@ -234,26 +240,33 @@ public class GenericGeometryResources {
       for (Map.Entry<String,String> entry : ComplexRepresentativeStation.entrySet()) {
         occultationStationMap.put(entry.getValue(), resource(discrete(false)));
         registrar.discrete("IlluminationAnglesByBody_" + body + "_" + entry.getKey(),
-          occultationStationMap.get(entry.getValue()), new BooleanValueMapper());
+          occultationStationMap.get(entry.getValue()), bvm);
       }
       SpacecraftOccultationByBodyAndStation.put(body, occultationStationMap);
 
       if (orbitParameterBodies.contains(body)) {
         orbitInclinationByBody.put(body, resource(discrete(0.0)));
-        registrar.discrete("orbitInclinationByBody_" + body, orbitInclinationByBody.get(body), withUnit("deg", new DoubleValueMapper()));
+        registrar.discrete("orbitInclinationByBody_" + body, orbitInclinationByBody.get(body), withUnit("deg", dvm));
 
         orbitPeriodByBody.put(body, resource(discrete(0.0)));
-        registrar.discrete("orbitPeriodByBody_" + body, orbitPeriodByBody.get(body), withUnit("s", new DoubleValueMapper()));
+        registrar.discrete("orbitPeriodByBody_" + body, orbitPeriodByBody.get(body), withUnit("s", dvm));
       }
 
       Periapsis.put(body, resource(discrete(false)));
-      registrar.discrete("Periapsis_" + body, Periapsis.get(body), new BooleanValueMapper());
+      registrar.discrete("Periapsis_" + body, Periapsis.get(body), bvm);
 
       Apoapsis.put(body, resource(discrete(false)));
-      registrar.discrete("Apoapsis_" + body, Apoapsis.get(body), new BooleanValueMapper());
+      registrar.discrete("Apoapsis_" + body, Apoapsis.get(body), bvm);
     }
 
   }
+  public static void registerVector(Registrar registrar, String name, Resource<Discrete<Vector3D>> r) {
+    registrar.discrete(name + "_X", map(r, v -> v == null ? null : v.getX()), dvm);
+    registrar.discrete(name + "_Y", map(r, v -> v == null ? null : v.getY()), dvm);
+    registrar.discrete(name + "_Z", map(r, v -> v == null ? null : v.getZ()), dvm);
+    registrar.discrete(name + "_magnitude", map(r, v -> v == null ? null : Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ())), dvm);
+  }
+
   public static Map<String, Body> getBodies(){
     return bodyObjects;
   }

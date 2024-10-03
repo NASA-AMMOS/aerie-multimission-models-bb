@@ -112,7 +112,7 @@ public class GeometrySpawnersTest {
 
     // Store off activity types of all simulated activities
     ArrayList<String> act_types = new ArrayList<String>();
-    for (ActivityInstance act : results.simulatedActivities.values()) {
+    for (SimulatedActivity act : results.simulatedActivities.values()) {
       act_types.add(act.type());
     }
 

@@ -36,7 +36,7 @@ tasks.named('test') {
   useJUnitPlatform()
 }
 
-def aerieVersion = getAerieVersion()
+def aerieVersion = "2.16.0"  // getAerieVersion()
 
 static String getAerieVersion() {
   def dockerTag = System.getenv("DOCKER_TAG")
