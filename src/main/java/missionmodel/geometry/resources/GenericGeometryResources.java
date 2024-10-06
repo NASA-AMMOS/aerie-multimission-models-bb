@@ -5,13 +5,12 @@ import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
 import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad;
 import missionmodel.geometry.spiceinterpolation.Body;
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gov.nasa.jpl.aerie.contrib.metadata.UnitRegistrar.withUnit;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
@@ -89,9 +88,9 @@ public class GenericGeometryResources {
   public Map<String, MutableResource<Discrete<Boolean>>> Periapsis;
   public Map<String, MutableResource<Discrete<Boolean>>> Apoapsis;
 
-  private static DoubleValueMapper dvm = new DoubleValueMapper();
-  private static BooleanValueMapper bvm = new BooleanValueMapper();
-  private static IntegerValueMapper ivm = new IntegerValueMapper();
+  public static DoubleValueMapper dvm = new DoubleValueMapper();
+  public static BooleanValueMapper bvm = new BooleanValueMapper();
+  public static IntegerValueMapper ivm = new IntegerValueMapper();
 
   public GenericGeometryResources(Registrar registrar, Map<String, Body> allBodies) {
     bodyObjects = allBodies;
@@ -265,6 +264,13 @@ public class GenericGeometryResources {
     registrar.discrete(name + "_Y", map(r, v -> v == null ? null : v.getY()), dvm);
     registrar.discrete(name + "_Z", map(r, v -> v == null ? null : v.getZ()), dvm);
     registrar.discrete(name + "_magnitude", map(r, v -> v == null ? null : Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ())), dvm);
+  }
+
+  public static void registerRotation(Registrar registrar, String name, Resource<Discrete<Rotation>> rotationResource) {
+      registrar.discrete(name + ".Q0",  DiscreteResourceMonad.map(rotationResource, (r) -> r.getQ0()), dvm);
+      registrar.discrete(name + ".Q1",  DiscreteResourceMonad.map(rotationResource, (r) -> r.getQ1()), dvm);
+      registrar.discrete(name + ".Q2",  DiscreteResourceMonad.map(rotationResource, (r) -> r.getQ2()), dvm);
+      registrar.discrete(name + ".Q3",  DiscreteResourceMonad.map(rotationResource, (r) -> r.getQ3()), dvm);
   }
 
   public static Map<String, Body> getBodies(){

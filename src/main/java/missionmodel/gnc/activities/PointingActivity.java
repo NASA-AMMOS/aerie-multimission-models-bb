@@ -5,7 +5,6 @@ import gov.nasa.jpl.aerie.merlin.framework.annotations.ActivityType;
 import gov.nasa.jpl.aerie.merlin.framework.annotations.Export;
 import gov.nasa.jpl.time.Duration;
 import gov.nasa.jpl.time.Time;
-import missionmodel.Configuration;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.Mission;
 import missionmodel.gnc.GncDataModel;
@@ -72,7 +71,7 @@ public class PointingActivity {
     Vector3D previousSecondaryObserver = currentValue(model.gncDataModel.secondaryObserver);
     String previousPrimaryTarget = currentValue(model.gncDataModel.primaryTarget);
     String previousSecondaryTarget = currentValue(model.gncDataModel.secondaryTarget);
-    Double rotation = currentValue(model.gncDataModel.PointingRotation);
+    Double rotation = currentValue(model.gncDataModel.PointingRotationAngle);
     Vector3D axis = currentValue(model.gncDataModel.PointingAxis);
     Vector3D rotationRate = currentValue(model.gncDataModel.RotationRate);
     if (rotationRate == null || rotationRate == Vector3D.NaN) {
@@ -162,7 +161,7 @@ public class PointingActivity {
         Orientation newOrientation = bbSlewData.get(t);
         Rotation newRotation = newOrientation.getRotation();
         DiscreteEffects.set(model.gncDataModel.PointingAxis, newRotation.getAxis(RotationConvention.VECTOR_OPERATOR));
-        DiscreteEffects.set(model.gncDataModel.PointingRotation, newRotation.getAngle());
+        DiscreteEffects.set(model.gncDataModel.PointingRotationAngle, newRotation.getAngle());
         DiscreteEffects.set(model.gncDataModel.RotationRate, newOrientation.getRotationRate());
       }
 

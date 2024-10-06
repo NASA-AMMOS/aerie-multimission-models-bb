@@ -4,9 +4,9 @@ import gov.nasa.jpl.aerie.contrib.serialization.mappers.BooleanValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.DoubleValueMapper;
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.StringValueMapper;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
-import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.LinkedHashMap;
@@ -15,11 +15,13 @@ import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resourc
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.discrete;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad.map;
+import static missionmodel.geometry.resources.GenericGeometryResources.registerRotation;
 import static missionmodel.geometry.resources.GenericGeometryResources.registerVector;
 
 public class GncDataModel {
   public MutableResource<Discrete<Vector3D>> PointingAxis;
-  public MutableResource<Discrete<Double>> PointingRotation;
+  public MutableResource<Discrete<Rotation>> rotation;
+  public MutableResource<Discrete<Double>> PointingRotationAngle;
   public MutableResource<Discrete<Vector3D>> RotationRate;
   public MutableResource<Discrete<Boolean>> IsSlewing;
   public MutableResource<Discrete<String>> primaryObserverString;
@@ -34,10 +36,12 @@ public class GncDataModel {
   private static StringValueMapper svm = new StringValueMapper();
 
   public GncDataModel(Registrar registrar) {
+    rotation = resource(discrete(Rotation.IDENTITY));
+    registerRotation(registrar, "rotation", rotation);
     PointingAxis = resource(discrete(Z));
     registerVector(registrar, "PointingAxis", PointingAxis);
-    PointingRotation = resource(discrete(0.0));
-    registrar.discrete("PointingRotation", PointingRotation, dvm);
+    PointingRotationAngle = resource(discrete(0.0));
+    registrar.discrete("PointingRotation", PointingRotationAngle, dvm);
     RotationRate = resource(discrete(Vector3D.ZERO));
     registerVector(registrar, "RotationRate", RotationRate);
     IsSlewing = resource(discrete(Boolean.FALSE));
@@ -58,7 +62,8 @@ public class GncDataModel {
   }
 
   public String currentToString() {
-    return "Pointing axis: " + currentValue(PointingAxis) + ", Pointing Rotation: " + currentValue(PointingRotation) +
+    return "Pointing axis: " + currentValue(PointingAxis) + ", Pointing Rotation: " + currentValue(PointingRotationAngle) +
+           ", Rotation: " + currentValue(rotation) +
            ", Rotation Rate: " + currentValue(RotationRate) +
            ", Primary Observer: " + currentValue(primaryObserverString) + " " + currentValue(primaryObserver) +
            ", Primary Target: " + currentValue(primaryTarget) +
