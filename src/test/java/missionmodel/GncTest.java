@@ -2,7 +2,6 @@ package missionmodel;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,28 +16,21 @@ import gov.nasa.jpl.aerie.merlin.driver.SimulationDriver;
 import gov.nasa.jpl.aerie.merlin.driver.SimulationResults;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
-
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import org.junit.jupiter.api.TestInstance;
 
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test
   void testSimulation() {
-    final var simulationStartTime = Instant.now();
+    final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
     // Input configuration
-    //String currentDir = System.getProperty("user.dir");
-    final Path geomConfigPath = Path.of("src/test/resources/juno_geometry_config.json");
-    final Integer scid = -61; // Juno
-    final Configuration geomConfig = new Configuration(geomConfigPath, scid);
+    final Configuration geomConfig = Configuration.defaultConfiguration();
 
     // Add Activities to Plan
     final Map<ActivityDirectiveId, ActivityDirective> schedule = new HashMap<>();
@@ -46,13 +38,15 @@ public class GncTest {
         schedule.put(new ActivityDirectiveId(1L), new ActivityDirective(
                 Duration.of(10, SECONDS),
                 "PointToTargetBody",
-                Map.of("primaryTargetBodyName", SerializedValue.of("JUPITER")),
+                Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
+                       "secondaryTargetBodyName", SerializedValue.of("SUN"),
+                       "primaryObserverString", SerializedValue.of("X"),
+                       "secondaryObserverString", SerializedValue.of("Z")),
                 null,
                 true
         ));
 
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
-//    System.out.println(results);
   }
 
   public SimulationResults simulate(

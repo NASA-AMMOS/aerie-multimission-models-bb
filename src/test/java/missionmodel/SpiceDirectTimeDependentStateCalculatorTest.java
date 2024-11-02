@@ -21,6 +21,7 @@ import spice.basic.SpiceErrorException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class SpiceDirectTimeDependentStateCalculatorTest {
 
   public static final Path VERSIONED_KERNELS_ROOT_DIRECTORY = Path.of(System.getenv().getOrDefault("SPICE_DIRECTORY", "spice/kernels"));
