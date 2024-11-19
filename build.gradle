@@ -32,8 +32,13 @@ repositories {
     }
 }
 
-tasks.named('test') {
+test {
   useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
+  }
+  minHeapSize = "512m" // initial heap size
+  maxHeapSize = "8g" // maximum heap size
 }
 
 def aerieVersion = "2.16.0"  // getAerieVersion()
