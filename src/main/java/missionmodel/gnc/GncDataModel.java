@@ -10,6 +10,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
@@ -36,25 +37,26 @@ public class GncDataModel {
   private static StringValueMapper svm = new StringValueMapper();
 
   public GncDataModel(Registrar registrar) {
+    var optRegistrar = Optional.of(registrar);
     rotation = resource(discrete(Rotation.IDENTITY));
-    registerRotation(registrar, "rotation", rotation);
+    registerRotation(optRegistrar, "rotation", rotation);
     PointingAxis = resource(discrete(Z));
-    registerVector(registrar, "PointingAxis", PointingAxis);
+    registerVector(optRegistrar, "PointingAxis", PointingAxis);
     PointingRotationAngle = resource(discrete(0.0));
     registrar.discrete("PointingRotation", PointingRotationAngle, dvm);
     RotationRate = resource(discrete(Vector3D.ZERO));
-    registerVector(registrar, "RotationRate", RotationRate);
+    registerVector(optRegistrar, "RotationRate", RotationRate);
     IsSlewing = resource(discrete(Boolean.FALSE));
     registrar.discrete("IsSlewing", IsSlewing, bvm);
 
     primaryObserverString = resource(discrete("-Z"));
     registrar.discrete("PrimaryObserver", primaryObserverString, svm);
     primaryObserver = resource(discrete(X));
-    registerVector(registrar, "PrimaryObserverVector", primaryObserver);
+    registerVector(optRegistrar, "PrimaryObserverVector", primaryObserver);
     secondaryObserverString = resource(discrete("X"));
     registrar.discrete("SecondaryObserver", secondaryObserverString, svm);
     secondaryObserver = resource(discrete(Y));
-    registerVector(registrar, "SecondaryObserverVector", secondaryObserver);
+    registerVector(optRegistrar, "SecondaryObserverVector", secondaryObserver);
     primaryTarget = resource(discrete("EARTH"));
     registrar.discrete("PrimaryTarget", primaryTarget, svm);
     secondaryTarget = resource(discrete("SUN"));

@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 
 public class AbsoluteClock {
 
-  private Instant startTime;
+  public Instant startTime;
 
   public AbsoluteClock(final Instant startTime) {
     this.startTime = startTime;

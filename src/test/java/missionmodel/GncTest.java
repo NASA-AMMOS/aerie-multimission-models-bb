@@ -46,8 +46,44 @@ public class GncTest {
                 true
         ));
 
+    Timer.reset();
+    var testTimer = new Timer("testSimulation", false);
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
+    testTimer.stop(false);
+    System.out.println("testSimulation()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
+    System.out.println("testSimulation() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
   }
+
+  @Test
+  void testSimulationLinear() {
+    final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
+    final var simulationDuration = Duration.of(96, HOURS);
+
+    // Input configuration
+    final Configuration geomConfig = Configuration.linearConfiguration();
+
+    // Add Activities to Plan
+    final Map<ActivityDirectiveId, ActivityDirective> schedule = new HashMap<>();
+
+    schedule.put(new ActivityDirectiveId(1L), new ActivityDirective(
+      Duration.of(10, SECONDS),
+      "PointToTargetBody",
+      Map.of("primaryTargetBodyName", SerializedValue.of("MARS"),
+        "secondaryTargetBodyName", SerializedValue.of("SUN"),
+        "primaryObserverString", SerializedValue.of("X"),
+        "secondaryObserverString", SerializedValue.of("Z")),
+      null,
+      true
+    ));
+
+    Timer.reset();
+    var testTimer = new Timer("testSimulationLinear", false);
+    final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
+    testTimer.stop(false);
+    System.out.println("testSimulationLinear()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
+    System.out.println("testSimulationLinear() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
+  }
+
 
   public SimulationResults simulate(
     Configuration configuration,

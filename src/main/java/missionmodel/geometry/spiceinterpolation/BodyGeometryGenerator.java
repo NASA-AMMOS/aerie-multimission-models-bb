@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentTime;
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 public class BodyGeometryGenerator {
@@ -49,6 +50,13 @@ public class BodyGeometryGenerator {
   }
 
   public void model(){
+    // Wait until SPICE data is available before entering the calculation loop
+    if (geoCalc instanceof GenericGeometryCalculator ggc) {
+      if (currentTime().shorterThan(ggc.spiceStart)) {
+        delay(ggc.spiceStart.minus(currentTime()));
+      }
+    }
+    // Calculate and update geometry resources for the body at time steps determined by the stepGenerator
     while (true) {
       try {
         geoCalc.calculateGeometry(bodies.get(bodyName));

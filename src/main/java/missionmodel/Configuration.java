@@ -12,15 +12,22 @@ public record Configuration(int spacecraftId,
                             Path geometryPath,
                             List<Double> gncAngularVelocityLimit,
                             List<Double> gncAngularAccelerationLimit,
-                            boolean gncRateMatching
+                            boolean gncRateMatching,
+                            boolean useLinearResources
                            ) {
   public static int DEFAULT_SPICE_SCID = -74;
   public static String DEFAULT_SPICE_SCID_STR = "MRO";
   public static Path DEFAULT_GEOM_PATH = Path.of("src/test/resources/default_geometry_config.json");
-  public static List<Double> ANGULAR_VELOCITY_LIMIT = List.of(5e-4, 5e-4, 5e-4);
+  public static List<Double> ANGULAR_VELOCITY_LIMIT = List.of(1e-3, 1e-3, 1e-3);
   public static List<Double> ANGULAR_ACCELERATION_LIMIT = List.of(5e-6, 5e-6, 5e-6);
+  public static boolean DEFAULT_GNC_RATE_MATCHING = false;
+  public static boolean DEFAULT_USE_LINEAR_RESOURCES = false;
   public static @Template Configuration defaultConfiguration() {
     return new Configuration(DEFAULT_SPICE_SCID, DEFAULT_SPICE_SCID_STR, DEFAULT_GEOM_PATH,
-      ANGULAR_VELOCITY_LIMIT, ANGULAR_ACCELERATION_LIMIT, false);
+      ANGULAR_VELOCITY_LIMIT, ANGULAR_ACCELERATION_LIMIT, DEFAULT_GNC_RATE_MATCHING, DEFAULT_USE_LINEAR_RESOURCES);
+  }
+  public static @Template Configuration linearConfiguration() {
+    return new Configuration(DEFAULT_SPICE_SCID, DEFAULT_SPICE_SCID_STR, DEFAULT_GEOM_PATH,
+      ANGULAR_VELOCITY_LIMIT, ANGULAR_ACCELERATION_LIMIT, DEFAULT_GNC_RATE_MATCHING, true);
   }
 }
