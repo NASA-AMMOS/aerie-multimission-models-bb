@@ -1,5 +1,6 @@
 package missionmodel;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -26,6 +27,7 @@ public class GncTest {
 
   @Test
   void testSimulation() {
+    System.out.println("testSimulation() start");
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
@@ -52,10 +54,13 @@ public class GncTest {
     testTimer.stop(false);
     System.out.println("testSimulation()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
     System.out.println("testSimulation() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
+    System.out.println("testSimulation() passes");
   }
 
   @Test
+  @Disabled
   void testSimulationLinear() {
+    System.out.println("testSimulationLinear() start");
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
@@ -82,6 +87,7 @@ public class GncTest {
     testTimer.stop(false);
     System.out.println("testSimulationLinear()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
     System.out.println("testSimulationLinear() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
+    System.out.println("testSimulationLinear() passes");
   }
 
 

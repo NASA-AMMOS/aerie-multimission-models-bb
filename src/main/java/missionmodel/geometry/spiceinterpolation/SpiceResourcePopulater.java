@@ -8,11 +8,10 @@ import gov.nasa.jpl.time.EpochRelativeTime;
 import gov.nasa.jpl.time.Time;
 import missionmodel.AbsoluteClock;
 import missionmodel.JPLTimeConvertUtility;
-import missionmodel.Mission;
 import missionmodel.Window;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.spawn;
@@ -32,13 +31,26 @@ public class SpiceResourcePopulater {
 
   private AbsoluteClock absClock;
 
-  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, Window[] dataGaps, Duration paddingAroundDataGaps) {
-    try (
-      var in = Objects.requireNonNull(Mission.class.getResourceAsStream("default_geometry_config.json"), "default_geometry_config.json not found");
-      var reader = new InputStreamReader(in)
-    ) {
+  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, Window[] dataGaps, Duration paddingAroundDataGaps, String geomPath) {
+    InputStreamReader reader = null;
+    if (geomPath == null) {
+      geomPath = "default_geometry_config.json";
+    }
+    try {
+      reader = new FileReader(geomPath);
+    } catch(FileNotFoundException fnfe) {
+      String fileName = Path.of(geomPath).getFileName().toString();
+      InputStream in = null;
+      try (InputStream r = GenericGeometryCalculator.class.getResourceAsStream(fileName)) {
+          in = Objects.requireNonNull(r, geomPath + " not found");
+      } catch (NullPointerException | IOException e) {
+        throw new RuntimeException(e);
+      }
+      reader = new InputStreamReader(in);
+    }
+    try {
       bodiesJsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-    } catch (IOException e) {
+    } catch (Exception e) {
         throw new RuntimeException(e);
     }
 
@@ -51,8 +63,8 @@ public class SpiceResourcePopulater {
     this.paddingAroundDataGaps = paddingAroundDataGaps;
   }
 
-  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock) {
-    this(geoCalc, absoluteClock, new Window[0], Duration.ZERO_DURATION);
+  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, String geomPath) {
+    this(geoCalc, absoluteClock, new Window[0], Duration.ZERO_DURATION, geomPath);
   }
 
   public void setDataGaps(Window[] newGaps, Duration newPadding) {

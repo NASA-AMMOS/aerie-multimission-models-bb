@@ -15,11 +15,13 @@ import missionmodel.geometry.interfaces.TimeDependentStateCalculator;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.returnedobjects.*;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import spice.basic.CSPICE;
 import spice.basic.SpiceErrorException;
 import spice.basic.SpiceException;
 import spice.basic.SpiceWindow;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,6 +61,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     this.calc = new SpiceDirectTimeDependentStateCalculator(bodies, true);
     determineSpiceStart();
     this.geomRes = new GenericGeometryResources(registrar, bodies, this);  // TODO -- these 2 classes depend on each other
+    System.out.println("constructed GenericGeometryResources");
   }
 
   /**
@@ -69,9 +72,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     try {
       SpiceWindow w = getCoverage(sc_id);
       Instant spiceInstant = toUTC(w.getInterval(0)[0]);
-      //System.out.println("spiceInstant = toUTC(" + w.getInterval(0)[0] + ") = " + spiceInstant);
+      //System.out.println("determineSpiceStart(): spiceInstant = toUTC(" + w.getInterval(0)[0] + ") = " + spiceInstant);
       this.spiceStart = minus(spiceInstant, planStart);
-      //System.out.println("spiceStart = " + spiceStart);
+      //System.out.println("determineSpiceStart(): spiceStart = " + spiceStart);
       spiceStartTime = d2t(spiceStart);
     } catch (SpiceException e) {
       throw new RuntimeException(e);
@@ -79,23 +82,38 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     // For some reason SPICE doesn't like queries at the time from getCoverage(), even 1 minute later.
     // Not sure why -- maybe because of light time or aberrations.
     // So, we hunt for the time when we get good values.
+    // Not sure error handling works as documented, so this may not work
     int hours = 0;
+//    try {
+//        CSPICE.erract("SET", "IGNORE");
+//    } catch (SpiceErrorException e) {
+//        throw new RuntimeException(e);
+//    }
     while (true) {
       try {
         var t = spiceStartTime.plus(gov.nasa.jpl.time.Duration.fromHours(hours));
         var state = calc.getState(t, Integer.toString(sc_id), "SUN", abcorr);
+        //System.out.println("determineSpiceStart(): t = " + t + ", state = " + (state == null ? "null" : "" + Arrays.deepToString(state)));
         // currently just giving up after 48 hours from the getCoverage() value;
         // Voyager 1 light time was about 23 hours away in 2024
         if (hours < 48 && (state == null || state.length == 0 || state[0] == null))
           hours += 1;
         else break;
       } catch (GeometryInformationNotAvailableException e) {
+        //System.out.println("Got exception trying to determine when spice starts: " + e.getLocalizedMessage());
+        //e.printStackTrace();
         if (hours >= 48) break;
         hours += 1;
       }
     }
     spiceStart = spiceStart.plus(Duration.of(hours, Duration.HOURS));
     spiceStartTime = d2t(spiceStart);
+//      try {
+//          CSPICE.erract("SET", "RETURN");
+//      } catch (SpiceErrorException e) {
+//          throw new RuntimeException(e);
+//      }
+    System.out.println("determineSpiceStart(): spiceStartTime = " + spiceStartTime + "(" + spiceStart + ")");
   }
 
   public Map<String, Body> getBodies(){

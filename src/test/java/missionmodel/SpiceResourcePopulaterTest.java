@@ -47,6 +47,7 @@ public class SpiceResourcePopulaterTest {
 
   @Test
   public void testInitializeAllBodiesFromJson() {
+    System.out.println("testInitializeAllBodiesFromJson() start");
     // The bodies in the test data set (default_geometry_config.json) against which MRO geometry will be calculated are
     // the Sun (10), Earth (399), and Mars (499). Each body has an associated body-fixed frame, iau_<body>. The test
     // data set only requests that most geometric quantities (e.g. Altitude, LST) be computed against Mars.
@@ -66,10 +67,12 @@ public class SpiceResourcePopulaterTest {
     assertEquals(true, bodies.get("MARS").doCalculateRaDec());
     assertEquals(true, bodies.get("MARS").doCalculateSubSolarInformation());
     assertEquals(false, bodies.get("MARS").useDSK());
+    System.out.println("testInitializeAllBodiesFromJson() passes");
   }
 
   @Test
   public void testGetCalculationPeriods() {
+    System.out.println("testGetCalculationPeriods() start");
     // Make it easier to work with the populater
     SpiceResourcePopulater pop = this.model.spiceResPop;
 
@@ -118,6 +121,6 @@ public class SpiceResourcePopulaterTest {
 
     calPeriods = pop.getCalculationPeriods("MARS", "Occultations");
     assertEquals(0, calPeriods.size());
-
+    System.out.println("testGetCalculationPeriods() passes");
   }
 }

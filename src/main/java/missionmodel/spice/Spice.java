@@ -12,9 +12,31 @@ import java.util.List;
 public class Spice {
 
   public static void initialize(String metaKernelPath) throws SpiceErrorException {
-    SpiceLoader.loadSpice();
-    CSPICE.kclear();
-    CSPICE.furnsh(metaKernelPath);
+    System.out.println("Spice.initialize(\"" + metaKernelPath + "\") start");
+//    try {
+//      CSPICE.unload(metaKernelPath);
+//    } catch (Throwable t) {}
+    boolean foundSpice = false;
+    for (Package p : Spice.class.getClassLoader().getDefinedPackages()) {
+      //System.out.println("Package " + p);
+      if (p.toString().contains("spice.basic")) {
+        //foundSpice = true;
+        break;
+      }
+    }
+    if (!foundSpice) {
+      SpiceLoader.loadSpice();
+      CSPICE.kclear();
+      //CSPICE.erract("SET", "IGNORE");
+      CSPICE.furnsh(metaKernelPath);
+    }
+    System.out.println("Spice.initialize() finish");
+  }
+
+  public static void unload(String metaKernelPath) throws SpiceErrorException {
+    System.out.println("Spice.unload(\"" + metaKernelPath + "\") start");
+    CSPICE.unload(metaKernelPath);
+    System.out.println("Spice.unload() finish");
   }
 
   public static List<String> getFiles(String kind) throws SpiceErrorException, SpiceKernelNotLoadedException {

@@ -69,8 +69,11 @@ public class BodyGeometryGenerator {
 //        pw.println(nextTimeAndBody.getValue().subtract( JPLTimeConvertUtility.nowJplTime(absoluteClock)).toString());
 //      }
 
-      delay( JPLTimeConvertUtility.getDuration(
-          nextTimeAndBody.getValue().minus( JPLTimeConvertUtility.nowJplTime(absoluteClock))));
+      gov.nasa.jpl.aerie.merlin.protocol.types.Duration d = JPLTimeConvertUtility.getDuration(
+        nextTimeAndBody.getValue().minus(JPLTimeConvertUtility.nowJplTime(absoluteClock)));
+      //System.out.println(bodyName + ": delay(" + d + ")");
+
+      delay(d);
     }
 
     // How do I do something at the end of simulation??
