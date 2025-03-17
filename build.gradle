@@ -19,6 +19,18 @@ jar {
   }
 }
 
+// geom_gnc.jar
+task geom_gncJar(type: Jar) {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
+  exclude 'missionmodel/Mission.class', 'missionmodel/Configuration.class', 'missionmodel/package-info.class', 'missionmodel/default_geometry_config.json', 'META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/versions/11/module-info.class', 'META-INF/versions/9/module-info.class'
+  with jar
+  archiveClassifier = 'geom_gnc'
+}
+
+artifacts {
+  archives geom_gncJar
+}
+
 repositories {
   flatDir { dirs "$rootDir/third-party" }
   mavenCentral()
@@ -36,6 +48,7 @@ test {
   useJUnitPlatform()
   testLogging {
     exceptionFormat = 'full'
+    showStandardStreams = true
   }
   minHeapSize = "512m" // initial heap size
   maxHeapSize = "8g" // maximum heap size
@@ -64,7 +77,8 @@ dependencies {
 
 
   testImplementation 'gov.nasa.jpl.aerie:merlin-framework-junit:' + aerieVersion
-  testImplementation 'org.junit.jupiter:junit-jupiter:+'
+  //testImplementation 'org.junit.jupiter:junit-jupiter:+'       // This needs to match the version of junit that aerie's using!
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'  // This needs to match the version of junit that aerie's using!
 
   testImplementation files("src/main/resources/jplTime-2022-08.jar")
 }
