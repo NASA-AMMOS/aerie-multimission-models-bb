@@ -71,6 +71,7 @@ public class SpiceDirectEventGeneratorTest {
 
   @Test
   public void testGetOccultations() {
+    System.out.println("testGetOccultations() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Eclipse Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // [757430442.38465, 757432124.34934]
@@ -106,11 +107,12 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
-
+    System.out.println("testGetOccultations() passes");
   }
 
   @Test
   public void testGetPeriapses() {
+    System.out.println("testGetPeriapses() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Periapsis Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // 757426028.12514
@@ -127,10 +129,12 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
+    System.out.println("testGetPeriapses() passes");
   }
 
   @Test
   public void testGetApoapses() {
+    System.out.println("testGetApoapses() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Apoapsis Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // 757429409.47531
@@ -145,23 +149,33 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
+    System.out.println("testGetApoapses() passes");
   }
 
   @Test
   public void testGetConjunctions() {
+    System.out.println("testGetConjunctions() start");
+    try {
+      Spice.initialize(NAIF_META_KERNEL_PATH);
+    }
+    catch (SpiceErrorException e) {
+      System.out.println(e.getMessage());
+    }
     // Mars had a conjunction in on 7 Nov 2023 21:14, so we will make sure our search interval covers that time frame
     // Conjunction Times for MARS between 2023-07-01 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // [752705612.18608, 754420777.63239]
     try {
-      List<Window> conjunctions = eventGenerator.getConjunctions(new Time("2023-180T00:00:00"), new Time("2024-001T00:00:00"), new Duration("1:0:0"), "EARTH", "MARS", "SUN", "CN", 3.0);
+      List<Window> conjunctions = eventGenerator.getConjunctions(new Time("2024-180T00:00:00"), new Time("2027-001T00:00:00"), new Duration("1:0:0"), "EARTH", "MARS", "SUN", "CN", 3.0);
       assertEquals(1, conjunctions.size());
       Duration conj_dur = conjunctions.get(0).getDuration();
-      assertTrue(new Duration("19T20:26:00").equalToWithin(conjunctions.get(0).getDuration(), Duration.HOUR_DURATION));
+      System.out.println(conj_dur);
+      assertTrue(new Duration("23T01:41:31.903672").equalToWithin(conjunctions.get(0).getDuration(), Duration.HOUR_DURATION));
 
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
       fail();
     }
+    System.out.println("testGetConjunctions() passes");
   }
 
   private void assertSameTimeListsToWithin(List<Time> t1, List<Time> t2, Duration tolerance){

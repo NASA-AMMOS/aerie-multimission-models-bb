@@ -54,6 +54,7 @@ public class GenericGeometryCalculatorTest {
 
   @Test
   public void testCalculateGeometry() {
+    System.out.println("testCalculateGeometry() start");
     // By this point the model has been initialized and we are in the simulation context at the start of the plan
     Time t = JPLTimeConvertUtility.jplTimeFromUTCInstant(planStart);
     int sc_id = -74; // MRO
@@ -71,6 +72,7 @@ public class GenericGeometryCalculatorTest {
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
+    System.out.println("testCalculateGeometry() passes");
   }
 
 }
