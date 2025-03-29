@@ -21,8 +21,8 @@ jar {
 
 // geom_gnc.jar
 task geom_gncJar(type: Jar) {
-  duplicatesStrategy = DuplicatesStrategy.INCLUDE
-  exclude 'missionmodel/Mission.class', 'missionmodel/Configuration.class', 'missionmodel/package-info.class', 'missionmodel/default_geometry_config.json', 'META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/versions/11/module-info.class', 'META-INF/versions/9/module-info.class'
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  exclude 'missionmodel/Mission.class', 'missionmodel/Configuration.class', 'missionmodel/generated/ConfigurationMapper.class', 'missionmodel/generated/GeneratedModelType.class', 'missionmodel/package-info.class', 'missionmodel/default_geometry_config.json', 'META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/versions/11/module-info.class', 'META-INF/versions/9/module-info.class'
   with jar
   archiveClassifier = 'geom_gnc'
 }

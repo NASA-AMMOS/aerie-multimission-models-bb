@@ -21,6 +21,7 @@ import spice.basic.SpiceException;
 import spice.basic.SpiceWindow;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -144,8 +145,10 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
     // this section is multi-mission because all missions have to communicate with Earth
     if (body.getName().equals("EARTH")) {
-      set(geomRes.upleg_time, upleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
+      Double ult = upleg_time(JPLTimeConvertUtility.nowJplTime(absClock));
+      set(geomRes.upleg_time, ult);
       set(geomRes.downleg_time, downleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
+      set(geomRes.rtlt, ult + downleg_time(JPLTimeConvertUtility.nowJplTime(absClock).plus(gov.nasa.jpl.time.Duration.fromSeconds(ult))));
       RADec scRADec = scRADec(JPLTimeConvertUtility.nowJplTime(absClock));
       set(geomRes.spacecraftDeclination, scRADec.getDec());
       set(geomRes.spacecraftRightAscension, scRADec.getRA());

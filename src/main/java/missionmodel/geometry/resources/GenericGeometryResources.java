@@ -77,6 +77,7 @@ public class GenericGeometryResources {
   public MutableResource<Discrete<Double>> downleg_time;
   public Resource<Unstructured<Double>> downleg_time_u;
   public Resource<Linear> downleg_time_p;
+  public MutableResource<Discrete<Double>> rtlt;
   public Resource<Unstructured<Double>> rtlt_u;
   public Resource<Linear> rtlt_p;
   public Map<String, Resource<Unstructured<Vector3D[]>>> bodyPositionAndVelocityWRTSpacecraft_u;
@@ -260,6 +261,7 @@ public class GenericGeometryResources {
     downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u);
     register_p(reg, "downleg_time", downleg_time, downleg_time_p, dvm);
 
+    rtlt = resource(discrete(0.0));
     rtlt_u = resource(Unstructured.timeBased(fit(t -> {
       Double ult = geometryCalculator.upleg_duration(t) * 1e6;
       var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;

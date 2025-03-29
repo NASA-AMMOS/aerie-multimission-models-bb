@@ -17,7 +17,6 @@ import missionmodel.gnc.blackbird.mmgenerator.GenerateRateMatchAttitudeModel;
 import missionmodel.gnc.blackbird.observers.CustomObserver;
 import missionmodel.gnc.blackbird.targets.primary.BodyCenterPrimaryTarget;
 import missionmodel.gnc.blackbird.targets.primary.CustomPrimaryTarget;
-import missionmodel.gnc.blackbird.targets.secondary.BodyCenterSecondaryTarget;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -29,7 +28,6 @@ import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentTime;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects.set;
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
-import static missionmodel.Configuration.*;
 import static missionmodel.gnc.GncDataModel.NEG_Z;
 
 @ActivityType("PointToTargetBody")
@@ -50,6 +48,10 @@ public class PointingActivity {
   public String secondaryTargetBodyName = "EARTH";
   /* secondaryTarget below is only specified when secondaryTargetBodyName is null or unknown; the string overrides the vector */
   public Vector3D secondaryTarget = Vector3D.MINUS_J;
+
+  public static List<Double> ANGULAR_VELOCITY_LIMIT = List.of(1e-3, 1e-3, 1e-3);
+  public static List<Double> ANGULAR_ACCELERATION_LIMIT = List.of(5e-6, 5e-6, 5e-6);
+  public static boolean DEFAULT_GNC_RATE_MATCHING = false;
 
   @Export.Parameter
   public List<Double> angularVelocityLimit = ANGULAR_VELOCITY_LIMIT;
