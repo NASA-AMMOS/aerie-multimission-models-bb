@@ -133,7 +133,7 @@ public class PointingActivity {
         bbPrimaryTarget,
         bbSpacecraftSecondaryObserver,
         bbSecondaryTarget,
-        Duration.fromHours(1)   // TODO: Arbitrary max on slew time of 1 hr
+        Duration.fromHours(2)   // TODO: Arbitrary max on slew time of 1 hr
       );
 
       // Spew them out as a series of Aerie DiscreteEffects

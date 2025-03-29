@@ -56,9 +56,14 @@ public class SpiceResourcePopulater {
     this.paddingAroundDataGaps = paddingAroundDataGaps;
   }
 
+  public void setDataGaps(Window[] newGaps, Duration newPadding) {
+    dataGaps = newGaps;
+    paddingAroundDataGaps = newPadding;
+  }
+
   public void calculateTimeDependentInformation(){
     for(Body body : bodies.values()){
-      List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory", Duration.ZERO_DURATION);
+      List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory");
       for(CalculationPeriod calculationPeriod : calculationPeriods) {
         BodyGeometryGenerator bodyGeoGenerator = new BodyGeometryGenerator(
           absClock, geoCalc.getResources(), JPLTimeConvertUtility.jplTimeFromUTCInstant(absClock.now()), body.getName(),
@@ -138,7 +143,7 @@ public class SpiceResourcePopulater {
     return paddedWindowsWithData.toArray(new Window[paddedWindowsWithData.size()]);
   }
 
-  public List<CalculationPeriod> getCalculationPeriods(String bodyname, String geometryType, Duration paddingAroundDataGaps){
+  public List<CalculationPeriod> getCalculationPeriods(String bodyname, String geometryType){
     List<CalculationPeriod> toReturn = new ArrayList<>();
     List<String> indices = Arrays.asList("bodies", bodyname, geometryType, "calculationPeriods");
     JsonElement calculationPeriods = getArbitraryJSON(bodiesJsonObject, indices);

@@ -1,25 +1,28 @@
 package missionmodel;
 
+import gov.nasa.jpl.time.Time;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
-import missionmodel.geometry.returnedobjects.*;
+import missionmodel.geometry.returnedobjects.IlluminationAngles;
+import missionmodel.geometry.returnedobjects.LatLonCoord;
+import missionmodel.geometry.returnedobjects.RADec;
+import missionmodel.geometry.returnedobjects.SubPointInformation;
 import missionmodel.geometry.spiceinterpolation.Body;
+import missionmodel.spice.Spice;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import gov.nasa.jpl.time.Time;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.extension.ExtendWith;
+import spice.basic.CSPICE;
+import spice.basic.SpiceErrorException;
 
 import java.nio.file.Path;
 import java.util.HashMap;
 
-import missionmodel.spice.Spice;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import spice.basic.SpiceErrorException;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class SpiceDirectTimeDependentStateCalculatorTest {

@@ -2,25 +2,21 @@ package missionmodel;
 
 import gov.nasa.jpl.aerie.merlin.framework.Registrar;
 import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
+import gov.nasa.jpl.time.Time;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.resources.GenericGeometryResources;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-
-import gov.nasa.jpl.time.Time;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import spice.basic.CSPICE;
+
+import java.time.Instant;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 // The `@ExtendWith` annotation injects the given extension into JUnit's testing apparatus.
 // Our `MerlinExtension` hooks test class construction and test method execution,

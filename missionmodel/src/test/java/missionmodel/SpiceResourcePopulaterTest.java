@@ -3,23 +3,22 @@ package missionmodel;
 import gov.nasa.jpl.aerie.merlin.framework.Registrar;
 import gov.nasa.jpl.aerie.merlin.framework.junit.MerlinExtension;
 import gov.nasa.jpl.time.Duration;
+import gov.nasa.jpl.time.Time;
 import missionmodel.geometry.spiceinterpolation.Body;
 import missionmodel.geometry.spiceinterpolation.CalculationPeriod;
 import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-
-import gov.nasa.jpl.time.Time;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import spice.basic.CSPICE;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // The `@ExtendWith` annotation injects the given extension into JUnit's testing apparatus.
 // Our `MerlinExtension` hooks test class construction and test method execution,
@@ -50,7 +49,7 @@ public class SpiceResourcePopulaterTest {
     // The bodies in the test data set (default_geometry_config.json) against which MRO geometry will be calculated are
     // the Sun (10), Earth (399), and Mars (499). Each body has an associated body-fixed frame, iau_<body>. The test
     // data set only requests that most geometric quantities (e.g. Altitude, LST) be computed against Mars.
-    HashMap<String, Body> bodies = this.model.spiceResPop.initializeAllBodiesFromJson();
+    HashMap<String, Body> bodies = this.model.spiceResPop.getBodies();
     assertEquals("IAU_SUN", bodies.get("SUN").getNAIFBodyFrame());
     assertEquals("IAU_EARTH", bodies.get("EARTH").getNAIFBodyFrame());
     assertEquals("IAU_MARS", bodies.get("MARS").getNAIFBodyFrame());

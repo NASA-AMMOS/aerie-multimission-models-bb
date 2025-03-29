@@ -3,9 +3,14 @@ package missionmodel;
 import gov.nasa.jpl.aerie.merlin.driver.*;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import gov.nasa.jpl.aerie.merlin.protocol.types.SerializedValue;
+import gov.nasa.jpl.aerie.types.ActivityDirective;
+import gov.nasa.jpl.aerie.types.ActivityDirectiveId;
+import gov.nasa.jpl.aerie.types.ActivityInstance;
 import missionmodel.generated.GeneratedModelType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import spice.basic.CSPICE;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -100,10 +105,9 @@ public class GeometrySpawnersTest {
 
 
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
-
     // Store off activity types of all simulated activities
     ArrayList<String> act_types = new ArrayList<String>();
-    for (SimulatedActivity act : results.simulatedActivities.values()) {
+    for (ActivityInstance act : results.simulatedActivities.values()) {
       act_types.add(act.type());
     }
 
