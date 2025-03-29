@@ -1,65 +1,34 @@
 plugins {
-  id 'java-library'
+  id("co.uzzu.dotenv.gradle") version "4.0.0"
 }
 
-java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
-}
-
-// The runtime environment this JAR will be deployed to doesn't know what this model depends on.
-// So the generated JAR must include its dependencies. (Except `merlin-sdk`, which is marked `compileTimeApi` by
-// `merlin-framework`, so that the runtime system and model JAR can agree on the same interfaces.)
-jar {
-  from {
-    configurations.runtimeClasspath.filter{ it.exists() }.collect{ it.isDirectory() ? it : zipTree(it) }
-  } {
-    exclude 'META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/versions/11/module-info.class', 'META-INF/versions/9/module-info.class'
-  }
-}
-
-repositories {
-  flatDir { dirs "$rootDir/third-party" }
-  mavenCentral()
-  maven {
+subprojects {
+  repositories {
+    flatDir { dirs "$rootDir/third-party" }
+    mavenCentral()
+    maven {
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/nasa-ammos/aerie"
-        credentials {
-          username = System.getenv('GITHUB_USER')
-          password = System.getenv('GITHUB_TOKEN')
-        }
+      credentials {
+        username = env.GITHUB_USER.value
+        password = env.GITHUB_TOKEN.value
+      }
     }
-}
-
-tasks.named('test') {
-  useJUnitPlatform()
-}
-
-def aerieVersion = "2.16.0"  // getAerieVersion()
-
-static String getAerieVersion() {
-  def dockerTag = System.getenv("DOCKER_TAG")
-  if (dockerTag == null || !dockerTag.startsWith('v')) {
-    return "+"
   }
-  return dockerTag.substring(1)
 }
 
-dependencies {
-  annotationProcessor 'gov.nasa.jpl.aerie:merlin-framework-processor:' + aerieVersion
-  implementation 'gov.nasa.jpl.aerie:contrib:' + aerieVersion
-  implementation 'gov.nasa.jpl.aerie:merlin-framework:' + aerieVersion
-  implementation 'gov.nasa.jpl.aerie:merlin-sdk:' + aerieVersion
-  implementation 'gov.nasa.jpl.aerie:merlin-driver:' + aerieVersion
-  implementation 'gov.nasa.jpl.aerie:parsing-utilities:' + aerieVersion
-  implementation 'com.google.code.gson:gson:+'
+task dumpGithubCreds {
+  doLast {
+    println "user: $env.GITHUB_USER.value"
+    println "token: $env.GITHUB_TOKEN.value"
+  }
+}
 
-  implementation files("src/main/resources/jplTime-2022-08.jar")
+project.ext.set("aerieVersion", getAerieVersion())
 
-
-  testImplementation 'gov.nasa.jpl.aerie:merlin-framework-junit:' + aerieVersion
-  testImplementation 'org.junit.jupiter:junit-jupiter:+'
-
-  testImplementation files("src/main/resources/jplTime-2022-08.jar")
+def getAerieVersion() {
+  if (env.DOCKER_TAG.isPresent()) {
+    return env.DOCKER_TAG.value.replace("v", "") // strip leading v
+  }
+  return "+" // + means latest version
 }
