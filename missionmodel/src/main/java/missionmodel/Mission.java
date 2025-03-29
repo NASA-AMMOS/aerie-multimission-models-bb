@@ -48,6 +48,7 @@ public final class Mission {
   public GncDataModel gncDataModel;
 
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Instant planStart, final Configuration config) {
+    Logging.LOGGER = null;
     this.configuration = config;
     this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     this.absoluteClock = new AbsoluteClock(planStart);
