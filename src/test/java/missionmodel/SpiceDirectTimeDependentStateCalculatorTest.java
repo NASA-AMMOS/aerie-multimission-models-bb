@@ -19,6 +19,7 @@ import missionmodel.spice.Spice;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import spice.basic.SpiceErrorException;
 
+import static missionmodel.Debug.debug;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -65,7 +66,7 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
 
   @Test
   public void testGetState() {
-    System.out.println("testGetState() start");
+    if (debug) System.out.println("testGetState() start");
     try{
       Vector3D[][] calcs = new Vector3D[][]{
         stateCalculatorCaching.getState(t, sc_id, target, abcorr),
@@ -87,12 +88,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetState() passes");
+    if (debug) System.out.println("testGetState() passes");
   }
 
   @Test
   public void testGetRange() {
-    System.out.println("testGetRange() start");
+    if (debug) System.out.println("testGetRange() start");
     try{
 
       // Results from MATLAB test script (test_mro_geom.m)
@@ -111,12 +112,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetRange() passes");
+    if (debug) System.out.println("testGetRange() passes");
   }
 
   @Test
   public void testGetSpeed() {
-    System.out.println("testGetSpeed() start");
+    if (debug) System.out.println("testGetSpeed() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Speed at 2024-01-02 00:00:00 UTC
     // Speed: = 3.44354
@@ -134,12 +135,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetSpeed() passes");
+    if (debug) System.out.println("testGetSpeed() passes");
   }
 
   @Test
   public void testGetSpacecraftAltitude() {
-    System.out.println("testGetSpacecraftAltitude() start");
+    if (debug) System.out.println("testGetSpacecraftAltitude() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Altitude at 2024-01-02 00:00:00 UTC
     // Altitude: = 252.27442
@@ -157,12 +158,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetSpacecraftAltitude() passes");
+    if (debug) System.out.println("testGetSpacecraftAltitude() passes");
   }
 
   @Test
   public void testGetSunBodySpacecraftAngle() {
-    System.out.println("testGetSunBodySpacecraftAngle() start");
+    if (debug) System.out.println("testGetSunBodySpacecraftAngle() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO SEP angle at 2024-01-02 00:00:00 UTC
     // SEP: = 13.01936
@@ -180,12 +181,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetSunBodySpacecraftAngle() passes");
+    if (debug) System.out.println("testGetSunBodySpacecraftAngle() passes");
   }
 
   @Test
   public void testGetSunSpacecraftBodyAngle() {
-    System.out.println("testGetSunSpacecraftBodyAngle() start");
+    if (debug) System.out.println("testGetSunSpacecraftBodyAngle() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO SPE angle at 2024-01-02 00:00:00 UTC
     // SPE: = 8.60335
@@ -203,12 +204,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetSunSpacecraftBodyAngle() passes");
+    if (debug) System.out.println("testGetSunSpacecraftBodyAngle() passes");
   }
 
   @Test
   public void testGetEarthSpacecraftBodyAngle() {
-    System.out.println("testGetEarthSpacecraftBodyAngle() start");
+    if (debug) System.out.println("testGetEarthSpacecraftBodyAngle() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Earth-Probe-Target angle at 2024-01-02 00:00:00 UTC
     // Earth-Probe-Target: = 77.57672
@@ -226,12 +227,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetEarthSpacecraftBodyAngle() passes");
+    if (debug) System.out.println("testGetEarthSpacecraftBodyAngle() passes");
   }
 
   @Test
   public void testGetEarthSunProbeAngle() {
-    System.out.println("testGetEarthSunProbeAngle() start");
+    if (debug) System.out.println("testGetEarthSunProbeAngle() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO ESP angle at 2024-01-02 00:00:00 UTC
     // ESP: = 158.37732
@@ -249,12 +250,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetEarthSunProbeAngle() passes");
+    if (debug) System.out.println("testGetEarthSunProbeAngle() passes");
   }
 
   @Test
   public void testGetSubPointInformation() {
-    System.out.println("testGetSubPointInformation() start");
+    if (debug) System.out.println("testGetSubPointInformation() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Sub-Spacecraft Point at 2024-01-02 00:00:00 UTC
     // Lat: = -70.54205
@@ -277,12 +278,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetSubPointInformation() passes");
+    if (debug) System.out.println("testGetSubPointInformation() passes");
   }
 
   @Test
   public void testGetIlluminationAngles() {
-    System.out.println("testGetIlluminationAngles() start");
+    if (debug) System.out.println("testGetIlluminationAngles() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Sub-Spacecraft Ilumination Angles at 2024-01-02 00:00:00 UTC
     // Phase: = 104.58995
@@ -304,7 +305,7 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetIlluminationAngles() passes");
+    if (debug) System.out.println("testGetIlluminationAngles() passes");
   }
 
 //  @Test
@@ -332,7 +333,7 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
 
   @Test
   public void testGetBetaAngle() {
-    System.out.println("testGetBetaAngle() start");
+    if (debug) System.out.println("testGetBetaAngle() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Beta Angle at 2024-01-02 00:00:00 UTC
     // Beta Angle: = 57.73393
@@ -350,12 +351,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetBetaAngle() passes");
+    if (debug) System.out.println("testGetBetaAngle() passes");
   }
 
   @Test
   public void testGetBodyHalfAngleSize() {
-    System.out.println("testGetBodyHalfAngleSize() start");
+    if (debug) System.out.println("testGetBodyHalfAngleSize() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO Body Half Angle Size at 2024-01-02 00:00:00 UTC
     // Half Angle Size: = 69.29538
@@ -373,12 +374,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetBodyHalfAngleSize() passes");
+    if (debug) System.out.println("testGetBodyHalfAngleSize() passes");
   }
 
   @Test
   public void testGetRADec() {
-    System.out.println("testGetRADec() start");
+    if (debug) System.out.println("testGetRADec() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO RA/DEC at 2024-01-02 00:00:00 UTC
     // RA: = -92.49891
@@ -398,12 +399,12 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     } catch (GeometryInformationNotAvailableException e) {
       fail();
     }
-    System.out.println("testGetRADec() passes");
+    if (debug) System.out.println("testGetRADec() passes");
   }
 
   @Test
   public void testGetLST() {
-    System.out.println("testGetLST() start");
+    if (debug) System.out.println("testGetLST() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // MRO LST at 2024-01-02 00:00:00 UTC
     // LST: = 3.37972
@@ -420,6 +421,6 @@ public class SpiceDirectTimeDependentStateCalculatorTest {
     catch(GeometryInformationNotAvailableException e){
       fail();
     }
-    System.out.println("testGetLST() passes");
+    if (debug) System.out.println("testGetLST() passes");
   }
 }

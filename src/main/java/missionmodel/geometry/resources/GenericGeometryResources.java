@@ -261,8 +261,6 @@ public class GenericGeometryResources {
 
     boolean linear = geometryCalculator.useLinearResources;
 
-    //List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory");
-
     // Non-arrayed resources
     upleg_time = resource(discrete(0.0));
     upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));

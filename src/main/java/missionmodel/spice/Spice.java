@@ -10,35 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Spice {
+  public static boolean debug = false;
+  private static boolean spiceImported = false;
 
   public static void initialize(String metaKernelPath) throws SpiceErrorException {
-    System.out.println("Spice.initialize(\"" + metaKernelPath + "\") start");
-//    try {
-//      CSPICE.unload(metaKernelPath);
-//    } catch (Throwable t) {}
-    boolean foundSpice = false;
-    for (Package p : Spice.class.getClassLoader().getDefinedPackages()) {
-      //System.out.println("Package " + p);
-      if (p.toString().contains("spice.basic")) {
-        //foundSpice = true;
-        break;
-      }
-    }
-    if (!foundSpice) {
+    if (!spiceImported) {
       SpiceLoader.loadSpice();
-      CSPICE.kclear();
-      //CSPICE.erract("SET", "IGNORE");
-      CSPICE.furnsh(metaKernelPath);
-    }
-    System.out.println("Spice.initialize() finish");
+      spiceImported = true;
+    }    CSPICE.kclear();
+    CSPICE.furnsh(metaKernelPath);
   }
-
-  public static void unload(String metaKernelPath) throws SpiceErrorException {
-    System.out.println("Spice.unload(\"" + metaKernelPath + "\") start");
-    CSPICE.unload(metaKernelPath);
-    System.out.println("Spice.unload() finish");
-  }
-
   public static List<String> getFiles(String kind) throws SpiceErrorException, SpiceKernelNotLoadedException {
     List<String> files = new ArrayList<>();
     var n = KernelDatabase.ktotal(kind);
@@ -57,7 +38,7 @@ public class Spice {
     for (String file : files) {
       SPK spk = SPK.openForRead(file);
       SpiceWindow w = spk.getCoverage(bodyOrScId);
-      //System.out.println("getCoverage(): " + file + " - " + w);
+      if (debug) System.out.println("getCoverage(): " + file + " - " + w);
       if (coverage == null) coverage = w;
       else coverage = coverage.union(w);
     }

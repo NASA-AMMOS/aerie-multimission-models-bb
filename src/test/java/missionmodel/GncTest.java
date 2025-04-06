@@ -21,13 +21,14 @@ import org.junit.jupiter.api.TestInstance;
 
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.HOURS;
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.SECONDS;
+import static missionmodel.Debug.debug;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GncTest {
 
   @Test
   void testSimulation() {
-    System.out.println("testSimulation() start");
+    if (debug) System.out.println("testSimulation() start");
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
@@ -52,15 +53,15 @@ public class GncTest {
     var testTimer = new Timer("testSimulation", false);
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
     testTimer.stop(false);
-    System.out.println("testSimulation()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
-    System.out.println("testSimulation() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
-    System.out.println("testSimulation() passes");
+    if (debug) System.out.println("testSimulation()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
+    if (debug) System.out.println("testSimulation() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
+    if (debug) System.out.println("testSimulation() passes");
   }
 
   @Test
-  @Disabled
+  //@Disabled
   void testSimulationLinear() {
-    System.out.println("testSimulationLinear() start");
+    if (debug) System.out.println("testSimulationLinear() start");
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
     final var simulationDuration = Duration.of(96, HOURS);
 
@@ -85,9 +86,9 @@ public class GncTest {
     var testTimer = new Timer("testSimulationLinear", false);
     final var results = simulate(geomConfig, simulationStartTime, simulationDuration, schedule);
     testTimer.stop(false);
-    System.out.println("testSimulationLinear()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
-    System.out.println("testSimulationLinear() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
-    System.out.println("testSimulationLinear() passes");
+    if (debug) System.out.println("testSimulationLinear()        CPU time: " + (testTimer.accumulatedCpuTime/1e9) + " seconds");
+    if (debug) System.out.println("testSimulationLinear() wall clock time: " + (testTimer.accumulatedWallClockTime/1e9) + " seconds");
+    if (debug) System.out.println("testSimulationLinear() passes");
   }
 
 

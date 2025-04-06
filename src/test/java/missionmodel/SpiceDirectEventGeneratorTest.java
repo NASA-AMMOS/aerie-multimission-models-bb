@@ -24,6 +24,7 @@ import missionmodel.spice.Spice;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import spice.basic.SpiceErrorException;
 
+import static missionmodel.Debug.debug;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(Lifecycle.PER_CLASS)
@@ -71,7 +72,7 @@ public class SpiceDirectEventGeneratorTest {
 
   @Test
   public void testGetOccultations() {
-    System.out.println("testGetOccultations() start");
+    if (debug) System.out.println("testGetOccultations() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Eclipse Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // [757430442.38465, 757432124.34934]
@@ -107,12 +108,12 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
-    System.out.println("testGetOccultations() passes");
+    if (debug) System.out.println("testGetOccultations() passes");
   }
 
   @Test
   public void testGetPeriapses() {
-    System.out.println("testGetPeriapses() start");
+    if (debug) System.out.println("testGetPeriapses() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Periapsis Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // 757426028.12514
@@ -129,12 +130,12 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
-    System.out.println("testGetPeriapses() passes");
+    if (debug) System.out.println("testGetPeriapses() passes");
   }
 
   @Test
   public void testGetApoapses() {
-    System.out.println("testGetApoapses() start");
+    if (debug) System.out.println("testGetApoapses() start");
     // Results from MATLAB test script (test_mro_geom.m)
     // Apoapsis Times for MRO between 2024-01-02 00:00:00 UTC and 2024-01-02 04:00:00 UTC
     // 757429409.47531
@@ -149,12 +150,12 @@ public class SpiceDirectEventGeneratorTest {
       e.printStackTrace();
       fail();
     }
-    System.out.println("testGetApoapses() passes");
+    if (debug) System.out.println("testGetApoapses() passes");
   }
 
   @Test
   public void testGetConjunctions() {
-    System.out.println("testGetConjunctions() start");
+    if (debug) System.out.println("testGetConjunctions() start");
     try {
       Spice.initialize(NAIF_META_KERNEL_PATH);
     }
@@ -168,14 +169,14 @@ public class SpiceDirectEventGeneratorTest {
       List<Window> conjunctions = eventGenerator.getConjunctions(new Time("2024-180T00:00:00"), new Time("2027-001T00:00:00"), new Duration("1:0:0"), "EARTH", "MARS", "SUN", "CN", 3.0);
       assertEquals(1, conjunctions.size());
       Duration conj_dur = conjunctions.get(0).getDuration();
-      System.out.println(conj_dur);
+      if (debug) System.out.println(conj_dur);
       assertTrue(new Duration("23T01:41:31.903672").equalToWithin(conjunctions.get(0).getDuration(), Duration.HOUR_DURATION));
 
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
       fail();
     }
-    System.out.println("testGetConjunctions() passes");
+    if (debug) System.out.println("testGetConjunctions() passes");
   }
 
   private void assertSameTimeListsToWithin(List<Time> t1, List<Time> t2, Duration tolerance){

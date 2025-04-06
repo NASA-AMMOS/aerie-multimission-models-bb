@@ -14,13 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static missionmodel.Debug.debug;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 // The `@ExtendWith` annotation injects the given extension into JUnit's testing apparatus.
 // Our `MerlinExtension` hooks test class construction and test method execution,
@@ -54,7 +50,7 @@ public class GenericGeometryCalculatorTest {
 
   @Test
   public void testCalculateGeometry() {
-    System.out.println("testCalculateGeometry() start");
+    if (debug) System.out.println("testCalculateGeometry() start");
     // By this point the model has been initialized and we are in the simulation context at the start of the plan
     Time t = JPLTimeConvertUtility.jplTimeFromUTCInstant(planStart);
     int sc_id = -74; // MRO
@@ -72,7 +68,7 @@ public class GenericGeometryCalculatorTest {
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
-    System.out.println("testCalculateGeometry() passes");
+    if (debug) System.out.println("testCalculateGeometry() passes");
   }
 
 }

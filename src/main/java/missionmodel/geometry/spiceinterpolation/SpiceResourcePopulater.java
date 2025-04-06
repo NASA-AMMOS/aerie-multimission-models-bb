@@ -160,7 +160,6 @@ public class SpiceResourcePopulater {
       JsonObject body = entry.getValue().getAsJsonObject();
       if(jsonObjHasKey(body, "Trajectory")) {
         JsonObject trajectory = body.get("Trajectory").getAsJsonObject();
-        JsonElement periods = trajectory.get("calculationPeriods");
         List<CalculationPeriod> calculationPeriods = getCalculationPeriods(entry.getKey(), "Trajectory");
         toReturn.put(entry.getKey(), new Body(entry.getKey(),
           body.get("NaifID").getAsInt(),

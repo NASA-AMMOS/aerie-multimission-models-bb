@@ -195,9 +195,7 @@ public class SpiceDirectEventGenerator implements GeometricEventGenerator {
     double[] cnfine = new double[]{start.toET(), endTime.toET()}; // define search window in a format gfsep can take
     int nintvls = 2 + (int)Math.ceil(endTime.subtract(start).totalSeconds() / stepSize.totalSeconds());
     try {
-      System.out.println("double[] angleResults = CSPICE.gfsep(conjunctingBody=" + conjunctingBody + ", POINT, conjunctingBodyFrame=" + conjunctingBodyFrame + ", target=" + target + ", POINT, targetBodyFrame=" + targetBodyFrame + ", abcorr, observer=" + observer + ", <, maxConjunctionAngle * (Math.PI/180)=" + (maxConjunctionAngle * Math.PI / 180) + ", 0.0, stepSize.totalSeconds()=" + stepSize.totalSeconds() + ", nintvls=" + nintvls + ", cnfine=[" + start + "," + endTime + "]=" + Arrays.toString(cnfine) + ")");
       double[] angleResults = CSPICE.gfsep(conjunctingBody, "POINT", conjunctingBodyFrame, target, "POINT", targetBodyFrame, abcorr, observer, "<", maxConjunctionAngle * (Math.PI/180), 0.0, stepSize.totalSeconds(), nintvls, cnfine);
-      System.out.println("angleResults = " + Arrays.toString(angleResults));
       for(int i = 0; i < angleResults.length; i += 2) { // result is in the format of: start1, end1, start2, end2, ....
         fullConjunctionList.add(new Window(Time.fromET(angleResults[i]), Time.fromET(angleResults[i + 1])));
       }
@@ -335,9 +333,7 @@ public class SpiceDirectEventGenerator implements GeometricEventGenerator {
   public static List<Window> geometryFinderDistance(String targetBody, String abcorr, String observer, String relationalOperator, double referenceValue, double adjust, Duration stepSize, Time startSearch, Time endSearch) throws SpiceErrorException {
     int nintvls = 2 + (int)Math.ceil(endSearch.subtract(startSearch).totalSeconds() / stepSize.totalSeconds());
     double[] cnfine = new double[]{startSearch.toET(), endSearch.toET()};
-    System.out.println("calling CSPICE.gfdist() with cnfine=[" + startSearch + "," + endSearch + "]=" + Arrays.toString(cnfine));
     double[] distanceResults = CSPICE.gfdist(targetBody, abcorr, observer, relationalOperator, referenceValue, adjust, stepSize.totalSeconds(), nintvls, cnfine);
-    System.out.println("CSPICE.gfdist() distanceResults = " + Arrays.toString(distanceResults));
     List<Window> toReturn = new ArrayList<>();
 
     for(int i = 0; i < distanceResults.length; i += 2) {

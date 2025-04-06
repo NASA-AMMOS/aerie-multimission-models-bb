@@ -44,6 +44,7 @@ import java.util.function.Supplier;
  *   </pre>
  */
 public class Timer {
+  public static boolean debug = false;
 
   /**
    * These are the stats that are accumulated across multiple Timers.
@@ -101,9 +102,11 @@ public class Timer {
       t2 = Instant.now();
     }
     avgTimeOfSystemCall = (instantToNanos(t2) - instantToNanos(t1)) / 10;  // divide by 10, not 11
-    logger.info("property gov.nasa.jpl.aerie.timeTasks = " + timeTasksProperty);
-    logger.info("Timer.timeTasks = " + timeTasks);
-    logger.info("average time of system call = " + avgTimeOfSystemCall + " nanoseconds");
+    if (debug) {
+      logger.info("property gov.nasa.jpl.aerie.timeTasks = " + timeTasksProperty);
+      logger.info("Timer.timeTasks = " + timeTasks);
+      logger.info("average time of system call = " + avgTimeOfSystemCall + " nanoseconds");
+    }
   }
 
   /**

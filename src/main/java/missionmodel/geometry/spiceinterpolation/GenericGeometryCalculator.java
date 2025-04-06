@@ -62,20 +62,20 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     this.calc = new SpiceDirectTimeDependentStateCalculator(bodies, true);
     determineSpiceStart();
     this.geomRes = new GenericGeometryResources(registrar, bodies, this);  // TODO -- these 2 classes depend on each other
-    System.out.println("constructed GenericGeometryResources");
   }
 
   /**
    * determine when data is available from SPICE
    */
   private void determineSpiceStart() {
+    boolean debug = false;
     // try getCoverage(), which tries to use the SPICE API to determine it
     try {
       SpiceWindow w = getCoverage(sc_id);
       Instant spiceInstant = toUTC(w.getInterval(0)[0]);
-      //System.out.println("determineSpiceStart(): spiceInstant = toUTC(" + w.getInterval(0)[0] + ") = " + spiceInstant);
+      if (debug) System.out.println("determineSpiceStart(): spiceInstant = toUTC(" + w.getInterval(0)[0] + ") = " + spiceInstant);
       this.spiceStart = minus(spiceInstant, planStart);
-      //System.out.println("determineSpiceStart(): spiceStart = " + spiceStart);
+      if (debug) System.out.println("determineSpiceStart(): spiceStart = " + spiceStart);
       spiceStartTime = d2t(spiceStart);
     } catch (SpiceException e) {
       throw new RuntimeException(e);
@@ -85,36 +85,26 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     // So, we hunt for the time when we get good values.
     // Not sure error handling works as documented, so this may not work
     int hours = 0;
-//    try {
-//        CSPICE.erract("SET", "IGNORE");
-//    } catch (SpiceErrorException e) {
-//        throw new RuntimeException(e);
-//    }
     while (true) {
       try {
         var t = spiceStartTime.plus(gov.nasa.jpl.time.Duration.fromHours(hours));
         var state = calc.getState(t, Integer.toString(sc_id), "SUN", abcorr);
-        //System.out.println("determineSpiceStart(): t = " + t + ", state = " + (state == null ? "null" : "" + Arrays.deepToString(state)));
+        if (debug) System.out.println("determineSpiceStart(): t = " + t + ", state = " + (state == null ? "null" : "" + Arrays.deepToString(state)));
         // currently just giving up after 48 hours from the getCoverage() value;
         // Voyager 1 light time was about 23 hours away in 2024
         if (hours < 48 && (state == null || state.length == 0 || state[0] == null))
           hours += 1;
         else break;
       } catch (GeometryInformationNotAvailableException e) {
-        //System.out.println("Got exception trying to determine when spice starts: " + e.getLocalizedMessage());
-        //e.printStackTrace();
+        if (debug) System.out.println("Got exception trying to determine when spice starts: " + e.getLocalizedMessage());
+        if (debug) e.printStackTrace();
         if (hours >= 48) break;
         hours += 1;
       }
     }
     spiceStart = spiceStart.plus(Duration.of(hours, Duration.HOURS));
     spiceStartTime = d2t(spiceStart);
-//      try {
-//          CSPICE.erract("SET", "RETURN");
-//      } catch (SpiceErrorException e) {
-//          throw new RuntimeException(e);
-//      }
-    System.out.println("determineSpiceStart(): spiceStartTime = " + spiceStartTime + "(" + spiceStart + ")");
+    if (debug) System.out.println("determineSpiceStart(): spiceStartTime = " + spiceStartTime + "(" + spiceStart + ")");
   }
 
   public Map<String, Body> getBodies(){

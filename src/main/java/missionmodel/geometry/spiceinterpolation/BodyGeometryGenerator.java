@@ -19,6 +19,7 @@ import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentTime;
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 public class BodyGeometryGenerator {
+  public static boolean debug = false;
   private String bodyName;
   private GeometryCalculator geoCalc;
   private VariableTimeStepGenerator stepGenerator;
@@ -71,7 +72,7 @@ public class BodyGeometryGenerator {
 
       gov.nasa.jpl.aerie.merlin.protocol.types.Duration d = JPLTimeConvertUtility.getDuration(
         nextTimeAndBody.getValue().minus(JPLTimeConvertUtility.nowJplTime(absoluteClock)));
-      //System.out.println(bodyName + ": delay(" + d + ")");
+      if (debug) System.out.println(bodyName + ": delay(" + d + ")");
 
       delay(d);
     }

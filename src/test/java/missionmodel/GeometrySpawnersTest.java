@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static gov.nasa.jpl.aerie.merlin.protocol.types.Duration.*;
+import static missionmodel.Debug.debug;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -24,7 +25,7 @@ public class GeometrySpawnersTest {
 
   @Test
   void testGeometrySpawners() {
-    System.out.println("testGeometrySpawners() start");
+    if (debug) System.out.println("testGeometrySpawners() start");
     // Create a simple plan to test spawners
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");;
     final var simulationDuration = Duration.of(4, HOURS);
@@ -121,7 +122,7 @@ public class GeometrySpawnersTest {
     assertEquals(2, Collections.frequency(act_types,"SpacecraftExitEclipse"));
     assertEquals(3, Collections.frequency(act_types,"ExitOccultation"));
 
-    System.out.println("testGeometrySpawners() passes");
+    if (debug) System.out.println("testGeometrySpawners() passes");
   }
 
   public SimulationResults simulate(
