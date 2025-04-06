@@ -15,13 +15,11 @@ import missionmodel.geometry.interfaces.TimeDependentStateCalculator;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.returnedobjects.*;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import spice.basic.CSPICE;
 import spice.basic.SpiceErrorException;
 import spice.basic.SpiceException;
 import spice.basic.SpiceWindow;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;

@@ -1,6 +1,5 @@
 package missionmodel.geometry.directspicecalls;
 
-import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.Body;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.interfaces.FunctionWithGeometricException;
