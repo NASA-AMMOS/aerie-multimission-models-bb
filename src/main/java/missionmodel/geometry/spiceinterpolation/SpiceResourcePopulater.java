@@ -33,6 +33,7 @@ import java.io.File;
 //import static gov.nasa.jpl.geometrymodel.resources.GenericGeometryResources.ComplexRepresentativeStation;
 
 public class SpiceResourcePopulater {
+  public static boolean debug = false;
   //private int sc_id;
   private Window[] dataGaps;
   private Duration paddingAroundDataGaps;
@@ -47,7 +48,6 @@ public class SpiceResourcePopulater {
     if (geomPath == null) {
       geomPath = "default_geometry_config.json";
     }
-    doStuff("default_geometry_config.json");
     InputStream in = null;
     InputStream r = null;
     try {
@@ -68,13 +68,13 @@ public class SpiceResourcePopulater {
         throw new RuntimeException(e);
     }
 
-    this.bodies = initializeAllBodiesFromJson();
-    //this.sc_id = sc_id;
-    this.geoCalc = geoCalc;
-    this.absClock = absoluteClock;
-    this.geoCalc.setBodies(this.bodies);
     this.dataGaps = dataGaps;
     this.paddingAroundDataGaps = paddingAroundDataGaps;
+    this.geoCalc = geoCalc;
+    this.absClock = absoluteClock;
+    this.bodies = initializeAllBodiesFromJson();
+    //this.sc_id = sc_id;
+    this.geoCalc.setBodies(this.bodies);
   }
 
   public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, String geomPath) {
@@ -96,133 +96,6 @@ public class SpiceResourcePopulater {
         spawn(bodyGeoGenerator::model);
       }
     }
-  }
-
-  /**
-   * Main method for testing
-   */
-  public static void doStuff(String resourcePath) {
-    // Method 1: Find a specific resource
-    //String resourcePath = "your-resource.json"; // Replace with your resource path
-    URL resourceUrl = SpiceResourcePopulater.class.getClassLoader().getResource(resourcePath);
-    System.out.println("Looking for specific resource: " + resourcePath);
-    System.out.println("Resource URL: " + resourceUrl);
-
-    if (resourceUrl != null) {
-      System.out.println("Resource found at: " + resourceUrl);
-    } else {
-      System.out.println("Resource not found. Let's try to list available resources...");
-    }
-
-    // Method 2: Try different ClassLoaders
-    System.out.println("\nTrying different ClassLoaders:");
-    tryMultipleClassloaders(resourcePath);
-
-    // Method 3: List all resources in the JAR file
-    System.out.println("\nListing all resources in JAR files in the classpath:");
-    try {
-      List<String> resources = listResourcesFromClasspath();
-      System.out.println("Found " + resources.size() + " resources:");
-      resources.forEach(resource -> System.out.println(" - " + resource));
-
-      // Filter for JSON files
-      System.out.println("\nJSON files found:");
-      resources.stream()
-        .filter(name -> name.endsWith(".json"))
-        .forEach(name -> System.out.println(" - " + name));
-    } catch (IOException e) {
-      System.err.println("Error listing resources: " + e.getMessage());
-      e.printStackTrace();
-    }
-  }
-
-
-  /**
-   * Try loading a resource using multiple different ClassLoaders
-   */
-  private static void tryMultipleClassloaders(String resourcePath) {
-    // 1. Current class's ClassLoader
-    URL url1 = SpiceResourcePopulater.class.getClassLoader().getResource(resourcePath);
-    System.out.println("Using ResourceFinder.class.getClassLoader(): " + url1);
-
-    // 2. Current thread's context ClassLoader
-    URL url2 = Thread.currentThread().getContextClassLoader().getResource(resourcePath);
-    System.out.println("Using Thread.currentThread().getContextClassLoader(): " + url2);
-
-    // 3. System ClassLoader
-    URL url3 = ClassLoader.getSystemClassLoader().getResource(resourcePath);
-    System.out.println("Using ClassLoader.getSystemClassLoader(): " + url3);
-
-    // 4. Using absolute path (no leading slash)
-    URL url4 = SpiceResourcePopulater.class.getClassLoader().getResource(resourcePath);
-    System.out.println("Using absolute path (no leading slash): " + url4);
-
-    // 5. Using absolute path (with leading slash)
-    URL url5 = SpiceResourcePopulater.class.getClassLoader().getResource("/" + resourcePath);
-    System.out.println("Using absolute path (with leading slash): " + url5);
-  }
-
-  /**
-   * Lists all resources found in JAR files on the classpath
-   */
-  private static List<String> listResourcesFromClasspath() throws IOException {
-    List<String> resources = new ArrayList<>();
-    String classpath = System.getProperty("java.class.path");
-    String[] classpathEntries = classpath.split(File.pathSeparator);
-
-    for (String classpathEntry : classpathEntries) {
-      File file = new File(classpathEntry);
-
-      if (file.isFile() && file.getName().endsWith(".jar")) {
-        // Process JAR file
-        try (JarFile jarFile = new JarFile(file)) {
-          Enumeration<JarEntry> entries = jarFile.entries();
-          while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            String entryName = entry.getName();
-
-            // Skip directories and class files
-            if (!entry.isDirectory() && !entryName.endsWith(".class")) {
-              resources.add(entryName);
-            }
-          }
-        }
-      }
-    }
-
-    return resources;
-  }
-
-  /**
-   * Alternative method to find all resources in the classpath matching a pattern
-   */
-  private static List<String> findResourcesWithPattern(String pattern) throws IOException {
-    List<String> result = new ArrayList<>();
-    ClassLoader classLoader = SpiceResourcePopulater.class.getClassLoader();
-
-    // Get all resources with the given name pattern from all locations
-    Enumeration<URL> resources = classLoader.getResources(pattern);
-    while (resources.hasMoreElements()) {
-      URL resource = resources.nextElement();
-      String decodedPath = URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8);
-      result.add(decodedPath);
-    }
-
-    return result;
-  }
-
-  /**
-   * Helper method to actually load a resource, if you know the path
-   */
-  private static String loadResource(String resourcePath) throws IOException {
-    URL url = SpiceResourcePopulater.class.getClassLoader().getResource(resourcePath);
-    if (url == null) {
-      throw new IOException("Resource not found: " + resourcePath);
-    }
-
-    // Once you have the URL, you can open a stream and read the content
-    // For example with java.nio.file.Files.readString(Path.of(url.toURI()))
-    return url.toString();
   }
 
 //  public void calculateEvents(){
@@ -287,6 +160,8 @@ public class SpiceResourcePopulater {
       JsonObject body = entry.getValue().getAsJsonObject();
       if(jsonObjHasKey(body, "Trajectory")) {
         JsonObject trajectory = body.get("Trajectory").getAsJsonObject();
+        JsonElement periods = trajectory.get("calculationPeriods");
+        List<CalculationPeriod> calculationPeriods = getCalculationPeriods(entry.getKey(), "Trajectory");
         toReturn.put(entry.getKey(), new Body(entry.getKey(),
           body.get("NaifID").getAsInt(),
           body.get("NaifFrame").getAsString(),
@@ -300,7 +175,8 @@ public class SpiceResourcePopulater {
           getIfNonNull(trajectory, "calculateLST"),
           getIfNonNull(trajectory, "calculateBetaAngle"),
           getIfNonNull(trajectory, "calculateOrbitParameters"),
-          getIfNonNull(trajectory, "useDSK")));
+          getIfNonNull(trajectory, "useDSK"),
+          calculationPeriods));
       }
       else{
         toReturn.put(entry.getKey(), new Body(entry.getKey(),

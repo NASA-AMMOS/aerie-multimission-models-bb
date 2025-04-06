@@ -4,16 +4,22 @@ import gov.nasa.jpl.aerie.contrib.serialization.mappers.*;
 import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
 import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.Approximation;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.IntervalFunctions;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.SecantApproximation;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.Unstructured;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.monads.UnstructuredResourceApplicative;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.linear.Linear;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.Polynomial;
 import gov.nasa.jpl.aerie.merlin.framework.ValueMapper;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import missionmodel.geometry.returnedobjects.RADec;
 import missionmodel.geometry.spiceinterpolation.Body;
+import missionmodel.geometry.spiceinterpolation.CalculationPeriod;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
+import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
@@ -23,11 +29,14 @@ import java.util.function.Function;
 
 import static gov.nasa.jpl.aerie.contrib.metadata.UnitRegistrar.withUnit;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
+import static gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.Approximation.approximate;
+import static gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.IntervalFunctions.byUniformSampling;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.UnstructuredResources.approximateAsLinear;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.discrete;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad.map;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.PolynomialResources.assumeLinear;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.PolynomialResources.constant;
+import static missionmodel.JPLTimeConvertUtility.getDuration;
 
 /**
  * This class instantiates a variety of geometry resources for a collection of bodies (e.g., Sun, Earth, Mars)
@@ -38,6 +47,8 @@ import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.Polynomi
  * an array for vector components.
  */
 public class GenericGeometryResources {
+
+  public static boolean optimizeSampling = false;
 
   /**
    * Set this true and registerTimeBased true and registerDiscrete false
@@ -250,15 +261,17 @@ public class GenericGeometryResources {
 
     boolean linear = geometryCalculator.useLinearResources;
 
+    //List<CalculationPeriod> calculationPeriods = getCalculationPeriods(body.getName(), "Trajectory");
+
     // Non-arrayed resources
     upleg_time = resource(discrete(0.0));
     upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));
-    upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u);
+    upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, "EARTH");
     register_p(reg, "upleg_time", upleg_time, upleg_time_p, dvm);
 
     downleg_time = resource(discrete(0.0));
     downleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::downleg_duration)));
-    downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u);
+    downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, "EARTH");
     register_p(reg, "downleg_time", downleg_time, downleg_time_p, dvm);
 
     rtlt = resource(discrete(0.0));
@@ -267,22 +280,22 @@ public class GenericGeometryResources {
       var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;
       return (ult + dlt)/1e6;
     })));
-    rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u);
+    rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u, "EARTH");
 
     radec_u = resource(Unstructured.timeBased(fit(geometryCalculator::scRADec)));
     spacecraftDeclination = resource(discrete(0.0));
     spacecraftDeclination_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getDec());
-    spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u);
+    spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, "EARTH");
     register_p(reg, "spacecraftDeclination", spacecraftDeclination, spacecraftDeclination_p, dvm);
 
     spacecraftRightAscension = resource(discrete(0.0));
     spacecraftRightAscension_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getRA());
-    spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u);
+    spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u, "EARTH");
     register_p(reg, "spacecraftRightAscension", spacecraftRightAscension, spacecraftRightAscension_p, dvm);
 
     EarthSunProbeAngle = resource(discrete(0.0));
     EarthSunProbeAngle_u = resource(Unstructured.timeBased(fit(t -> geometryCalculator.earthSunProbeAngle(t))));
-    EarthSunProbeAngle_p = maybeApproximateAsLinear(EarthSunProbeAngle_u);
+    EarthSunProbeAngle_p = maybeApproximateAsLinear(EarthSunProbeAngle_u, "EARTH");
     register_p(reg, "EarthSunProbeAngle", EarthSunProbeAngle, EarthSunProbeAngle_p, dvm);
 
     AnySpacecraftEclipse = resource(discrete(EclipseTypes.NONE));
@@ -310,11 +323,11 @@ public class GenericGeometryResources {
 
       BODY_POS_ICRF.put(body, resource(discrete(Vector3D.MINUS_K)));
       BODY_POS_ICRF_u.put(body, UnstructuredResourceApplicative.map(bodyPositionAndVelocityWRTSpacecraft_u.get(body), u -> u[0]));
-      registerUV(reg, "BODY_POS_ICRF_" + body, BODY_POS_ICRF.get(body), BODY_POS_ICRF_u.get(body));
+      registerUV(reg, "BODY_POS_ICRF_" + body, BODY_POS_ICRF.get(body), BODY_POS_ICRF_u.get(body), body);
 
       BODY_VEL_ICRF.put(body, resource(discrete(Vector3D.MINUS_K)));
       BODY_VEL_ICRF_u.put(body, UnstructuredResourceApplicative.map(bodyPositionAndVelocityWRTSpacecraft_u.get(body), u -> u[1]));
-      registerUV(reg, "BODY_VEL_ICRF_" + body, BODY_VEL_ICRF.get(body), BODY_VEL_ICRF_u.get(body));
+      registerUV(reg, "BODY_VEL_ICRF_" + body, BODY_VEL_ICRF.get(body), BODY_VEL_ICRF_u.get(body), body);
 
       SpacecraftBodyRange.put(body, resource(discrete(0.0)));
       SpacecraftBodyRange_p.put(body, BODY_POS_ICRF_a.get(body)[3]);
@@ -330,14 +343,14 @@ public class GenericGeometryResources {
       //var pres = ResourceMonad.map(BODY_POS_ICRF_a.get(body), sunPositionAndVelocityWRTBody_a.get(body)[0], (bp, sp) -> geometryCalculator.sunSpacecraftBodyAngle(new Vector3D(bp), new Vector3D(sp)));
       var ures = resource(Unstructured.timeBased(t -> geometryCalculator.sunSpacecraftBodyAngle(t, body)));
       SunSpacecraftBodyAngle_u.put(body, ures);
-      SunSpacecraftBodyAngle_p.put(body, maybeApproximateAsLinear(ures));
+      SunSpacecraftBodyAngle_p.put(body, maybeApproximateAsLinear(ures, body));
       //if (!reg.isEmpty()) reg.get().discrete("SunSpacecraftBodyAngle_" + body, SunSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
       register_p(reg, "SunSpacecraftBodyAngle_" + body, SunSpacecraftBodyAngle.get(body), SunSpacecraftBodyAngle_p.get(body), withUnit("deg", dvm));
 
       SunBodySpacecraftAngle.put(body, resource(discrete(0.0)));
       ures = resource(Unstructured.timeBased(t -> geometryCalculator.sunBodySpacecraftAngle(t, body)));
       SunBodySpacecraftAngle_u.put(body, ures);
-      SunBodySpacecraftAngle_p.put(body, maybeApproximateAsLinear(ures));
+      SunBodySpacecraftAngle_p.put(body, maybeApproximateAsLinear(ures, body));
       register_p(reg, "SunBodySpacecraftAngle_" + body, SunBodySpacecraftAngle.get(body), SunBodySpacecraftAngle_p.get(body), withUnit("deg", dvm));
       //if (!reg.isEmpty()) reg.get().discrete("SunBodySpacecraftAngle_" + body, SunBodySpacecraftAngle.get(body), withUnit("deg", dvm));
 
@@ -437,9 +450,25 @@ public class GenericGeometryResources {
     return t -> f.apply(Duration.max(spiceStart, t));
   }
 
-  private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>> resource) {
-    return geometryCalculator.useLinearResources ? approximateAsLinear(resource) : assumeLinear(constant(0.0));
+  private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>> resource, String body) {
+    if (!geometryCalculator.useLinearResources) {
+      return assumeLinear(constant(0.0)); // dummy resource
+    }
+    if (optimizeSampling) {
+      return approximateAsLinear(resource);
+    }
+    var periods = bodyObjects.get(body).calculationPeriods();
+    if (periods.isEmpty() && !body.equalsIgnoreCase("EARTH")) {
+      periods = bodyObjects.get("EARTH").calculationPeriods();
+    }
+    Duration samplePeriod = periods.isEmpty() ? Duration.of(24, Duration.HOURS) : getDuration(periods.get(0).getMaxTimeStep());
+    return approximateUniformalyAsLinear(resource, samplePeriod);
   }
+
+  public static Resource<Linear> approximateUniformalyAsLinear(Resource<Unstructured<Double>> resource, Duration samplePeriod) {
+    return Approximation.approximate(resource, SecantApproximation.<Unstructured<Double>>secantApproximation(byUniformSampling(Duration.HOUR)));
+  }
+
 
   /**
    * Populate different types of resources for position and velocity with respect to a body using a specified function
@@ -457,16 +486,16 @@ public class GenericGeometryResources {
     bodyPositionAndVelocity_u.put(body, bpvr);
     List<Resource<Linear>> xyzn = new ArrayList<>();
     Resource<Linear>[] xyzna0 = new Resource[] {
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getX())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getY())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getZ())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getNorm()))
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getX()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getY()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getZ()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[0] == null ? null : v[0].getNorm()), body)
     };
     Resource<Linear>[] xyzna1 = new Resource[] {
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getX())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getY())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getZ())),
-      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getNorm()))
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getX()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getY()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getZ()), body),
+      maybeApproximateAsLinear(UnstructuredResourceApplicative.map(bpvr, v -> v[1] == null ? null : v[1].getNorm()), body)
     };
     Resource<Linear>[][] xyzna = new Resource[][] { xyzna0, xyzna1 };
     bodyPositionAndVelocity_a.put(body, xyzna);
@@ -500,21 +529,21 @@ public class GenericGeometryResources {
     if (linearTimeBased) r.get().real(name, rl);
     if (registerDiscrete) r.get().discrete(name, rd, vm);
   }
-  private void register_u(Optional<Registrar> r, String name, Resource<Discrete<Double>> rd, Resource<Unstructured<Double>> ru) {
+  private void register_u(Optional<Registrar> r, String name, Resource<Discrete<Double>> rd, Resource<Unstructured<Double>> ru, String body) {
     if (r.isEmpty()) return;
-    if (linearTimeBased) r.get().real(name, maybeApproximateAsLinear(ru));
+    if (linearTimeBased) r.get().real(name, maybeApproximateAsLinear(ru, body));
     if (registerDiscrete) r.get().discrete(name, rd, dvm);
   }
 
-  private void registerUV(Optional<Registrar> r, String name, Resource<Discrete<Vector3D>> rd, Resource<Unstructured<Vector3D>> ru) {
+  private void registerUV(Optional<Registrar> r, String name, Resource<Discrete<Vector3D>> rd, Resource<Unstructured<Vector3D>> ru, String body) {
     register_u(r, name + "_X", map(rd, v -> v == null ? null : v.getX()),
-      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getX()));
+      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getX()), body);
     register_u(r, name + "_Y", map(rd, v -> v == null ? null : v.getY()),
-      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getY()));
+      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getY()), body);
     register_u(r, name + "_Z", map(rd, v -> v == null ? null : v.getZ()),
-      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getZ()));
+      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getZ()), body);
     register_u(r, name + "_magnitude", map(rd, v -> v == null ? null : v.getNorm()),
-      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getNorm()));
+      UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getNorm()), body);
   }
 
   public static Map<String, Body> getBodies(){
