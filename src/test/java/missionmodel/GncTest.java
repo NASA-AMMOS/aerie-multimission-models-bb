@@ -1,6 +1,5 @@
 package missionmodel;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -59,7 +58,6 @@ public class GncTest {
   }
 
   @Test
-  //@Disabled
   void testSimulationLinear() {
     if (debug) System.out.println("testSimulationLinear() start");
     final var simulationStartTime = Instant.parse("2024-01-02T00:00:00Z");
