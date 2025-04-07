@@ -14,6 +14,7 @@ import spice.basic.SpiceErrorException;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * Top-level Mission Model Class
@@ -26,7 +27,7 @@ public final class Mission {
   public final Configuration configuration;
 
   // Special registrar class that handles simulation errors via auto-generated resources
-  public final Registrar errorRegistrar;
+  public final Registrar registrar;
 
   public final AbsoluteClock absoluteClock;
 
@@ -50,7 +51,7 @@ public final class Mission {
   public Mission(final gov.nasa.jpl.aerie.merlin.framework.Registrar registrar, final Instant planStart, final Configuration config) {
     Logging.LOGGER = null;
     this.configuration = config;
-    this.errorRegistrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
+    this.registrar = new Registrar(registrar, Registrar.ErrorBehavior.Log);
     this.absoluteClock = new AbsoluteClock(planStart);
 
     try {
@@ -61,14 +62,16 @@ public final class Mission {
     }
 
     // Initialize Geometry Model
-    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, SPICE_SCID, "LT+S", this.errorRegistrar);
+    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, SPICE_SCID, "LT+S", planStart, configuration.useLinearResources(), Optional.of(this.registrar));
     // Assume no gaps in SPICE data for now
-    this.spiceResPop = new SpiceResourcePopulater(this.geometryCalculator, this.absoluteClock, new Window[]{}, Duration.ZERO_DURATION );
+    this.spiceResPop = new SpiceResourcePopulater(this.geometryCalculator, this.absoluteClock, new Window[]{}, Duration.ZERO_DURATION, config.geometryPath().toString());
     this.geometryResources = this.geometryCalculator.getResources();
-    this.spiceResPop.calculateTimeDependentInformation();
+    if (!config.useLinearResources()) {
+      this.spiceResPop.calculateTimeDependentInformation();
+    }
 
     // --------------------------------
     // GNC Model Integration
-    this.gncDataModel = new GncDataModel(this.errorRegistrar);
+    this.gncDataModel = new GncDataModel(this.registrar);
   }
 }

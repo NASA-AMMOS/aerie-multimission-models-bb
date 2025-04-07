@@ -16,9 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentTime;
 import static gov.nasa.jpl.aerie.merlin.framework.ModelActions.delay;
 
 public class BodyGeometryGenerator {
+  public static boolean debug = false;
   private String bodyName;
   private GeometryCalculator geoCalc;
   private VariableTimeStepGenerator stepGenerator;
@@ -50,6 +52,13 @@ public class BodyGeometryGenerator {
   }
 
   public void model(){
+    // Wait until SPICE data is available before entering the calculation loop
+    if (geoCalc instanceof GenericGeometryCalculator ggc) {
+      if (currentTime().shorterThan(ggc.spiceStart)) {
+        delay(ggc.spiceStart.minus(currentTime()));
+      }
+    }
+    // Calculate and update geometry resources for the body at time steps determined by the stepGenerator
     while (true) {
       try {
         geoCalc.calculateGeometry(bodies.get(bodyName));
@@ -62,8 +71,11 @@ public class BodyGeometryGenerator {
 //        pw.println(nextTimeAndBody.getValue().subtract( JPLTimeConvertUtility.nowJplTime(absoluteClock)).toString());
 //      }
 
-      delay( JPLTimeConvertUtility.getDuration(
-          nextTimeAndBody.getValue().minus( JPLTimeConvertUtility.nowJplTime(absoluteClock))));
+      gov.nasa.jpl.aerie.merlin.protocol.types.Duration d = JPLTimeConvertUtility.getDuration(
+        nextTimeAndBody.getValue().minus(JPLTimeConvertUtility.nowJplTime(absoluteClock)));
+      if (debug) System.out.println(bodyName + ": delay(" + d + ")");
+
+      delay(d);
     }
 
     // How do I do something at the end of simulation??
