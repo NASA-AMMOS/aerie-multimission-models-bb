@@ -389,7 +389,7 @@ public class GenericGeometryResources {
 
       if (subSolarBodies.contains(body)) {
         BodySubSolarPoint.put(body, resource(discrete( new Vector3D(0.0,0.0,0.0))));
-        if (reg != null) registerVector(reg, "BodySubSolarPoint_" + body, BodySubSolarPoint.get(body));
+        registerVector(reg, "BodySubSolarPoint_" + body, BodySubSolarPoint.get(body));
       }
 
       if (subSCBodies.contains(body)) {
