@@ -1,0 +1,60 @@
+plugins {
+  id 'java-library'
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+// The runtime environment this JAR will be deployed to doesn't know what this model depends on.
+// So the generated JAR must include its dependencies. (Except `merlin-sdk`, which is marked `compileTimeApi` by
+// `merlin-framework`, so that the runtime system and model JAR can agree on the same interfaces.)
+jar {
+  from {
+    configurations.runtimeClasspath.filter{ it.exists() }.collect{ it.isDirectory() ? it : zipTree(it) }
+  }
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
+// geom_gnc.jar
+task geom_gncJar(type: Jar) {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  exclude 'missionmodel/Mission.class', 'missionmodel/Configuration.class', 'missionmodel/generated/ConfigurationMapper.class', 'missionmodel/generated/GeneratedModelType.class', 'missionmodel/package-info.class', 'missionmodel/default_geometry_config.json', 'META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/versions/11/module-info.class', 'META-INF/versions/9/module-info.class'
+  with jar
+  archiveClassifier = 'geom_gnc'
+}
+
+artifacts {
+  archives geom_gncJar
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
+    showStandardStreams = true
+  }
+  minHeapSize = "512m" // initial heap size
+  maxHeapSize = "8g" // maximum heap size
+}
+
+dependencies {
+  annotationProcessor 'gov.nasa.jpl.aerie:merlin-framework-processor:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:contrib:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:merlin-framework:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:merlin-sdk:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:merlin-driver:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:parsing-utilities:' + project.aerieVersion
+  implementation 'gov.nasa.jpl.aerie:type-utils:' + project.aerieVersion
+  implementation 'com.google.code.gson:gson:+'
+
+  testImplementation 'gov.nasa.jpl.aerie:merlin-framework-junit:' + project.aerieVersion
+  //testImplementation 'org.junit.jupiter:junit-jupiter:+'       // This needs to match the version of junit that aerie's using!
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'  // This needs to match the version of junit that aerie's using!
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+  implementation files("src/main/resources/jplTime-2022-08.jar")
+  testImplementation files("src/main/resources/jplTime-2022-08.jar")
+}

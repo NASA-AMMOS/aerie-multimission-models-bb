@@ -1,2 +1,4 @@
-rootProject.name = 'missionmodel'
-include('src')
+rootProject.name = 'aerie-bb-models'
+include('missionmodel')
+include('scheduling')
+// include('constraints')
