@@ -60,13 +60,13 @@ public class Bodies {
       }
       reader = new InputStreamReader(in);
     }
-    JsonObject bodiesJsonObject = null;
+    JsonObject bodiesJson = null;
     try {
-      bodiesJsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+      bodiesJson = JsonParser.parseReader(reader).getAsJsonObject();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return bodiesJsonObject;
+    return bodiesJson;
   }
 
   public HashMap<String, Body> initializeAllBodiesFromJson(JsonObject bodiesJson){

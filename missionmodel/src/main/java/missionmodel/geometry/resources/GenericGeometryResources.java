@@ -69,6 +69,8 @@ public class GenericGeometryResources {
   //private static String[] latLonCoordinates = new String[]{"latitude","longitude", "radius"};
   private static String[] subSCIndices = new String[]{"dist","latitude","longitude","radius","LST"};
 
+  private static final String EARTH = "EARTH";
+
   public static Map<String, String> ComplexRepresentativeStation = new HashMap<>();
   static{
     ComplexRepresentativeStation.put("Goldstone", "DSS-24");
@@ -259,12 +261,12 @@ public class GenericGeometryResources {
     // Non-arrayed resources
     upleg_time = resource(discrete(0.0));
     upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));
-    upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, "EARTH");
+    upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, EARTH);
     register_p(reg, "upleg_time", upleg_time, upleg_time_p, dvm);
 
     downleg_time = resource(discrete(0.0));
     downleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::downleg_duration)));
-    downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, "EARTH");
+    downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, EARTH);
     register_p(reg, "downleg_time", downleg_time, downleg_time_p, dvm);
 
     rtlt = resource(discrete(0.0));
@@ -273,22 +275,22 @@ public class GenericGeometryResources {
       var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;
       return (ult + dlt)/1e6;
     })));
-    rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u, "EARTH");
+    rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u, EARTH);
 
     radec_u = resource(Unstructured.timeBased(fit(geometryCalculator::scRADec)));
     spacecraftDeclination = resource(discrete(0.0));
     spacecraftDeclination_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getDec());
-    spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, "EARTH");
+    spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, EARTH);
     register_p(reg, "spacecraftDeclination", spacecraftDeclination, spacecraftDeclination_p, dvm);
 
     spacecraftRightAscension = resource(discrete(0.0));
     spacecraftRightAscension_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getRA());
-    spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u, "EARTH");
+    spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u, EARTH);
     register_p(reg, "spacecraftRightAscension", spacecraftRightAscension, spacecraftRightAscension_p, dvm);
 
     EarthSunProbeAngle = resource(discrete(0.0));
     EarthSunProbeAngle_u = resource(Unstructured.timeBased(fit(t -> geometryCalculator.earthSunProbeAngle(t))));
-    EarthSunProbeAngle_p = maybeApproximateAsLinear(EarthSunProbeAngle_u, "EARTH");
+    EarthSunProbeAngle_p = maybeApproximateAsLinear(EarthSunProbeAngle_u, EARTH);
     register_p(reg, "EarthSunProbeAngle", EarthSunProbeAngle, EarthSunProbeAngle_p, dvm);
 
     AnySpacecraftEclipse = resource(discrete(EclipseTypes.NONE));
@@ -451,15 +453,16 @@ public class GenericGeometryResources {
       return approximateAsLinear(resource);
     }
     var periods = bodyObjects.get(body).calculationPeriods();
-    if (periods.isEmpty() && !body.equalsIgnoreCase("EARTH")) {
-      periods = bodyObjects.get("EARTH").calculationPeriods();
+    if (periods.isEmpty() && !body.equalsIgnoreCase(EARTH)) {
+      periods = bodyObjects.get(EARTH).calculationPeriods();
     }
     Duration samplePeriod = periods.isEmpty() ? Duration.of(24, Duration.HOURS) : getDuration(periods.get(0).getMaxTimeStep());
     return approximateUniformalyAsLinear(resource, samplePeriod);
   }
 
   public static Resource<Linear> approximateUniformalyAsLinear(Resource<Unstructured<Double>> resource, Duration samplePeriod) {
-    return Approximation.approximate(resource, SecantApproximation.<Unstructured<Double>>secantApproximation(byUniformSampling(Duration.HOUR)));
+    if ( samplePeriod == null ) samplePeriod = Duration.HOUR;
+    return Approximation.approximate(resource, SecantApproximation.<Unstructured<Double>>secantApproximation(byUniformSampling(samplePeriod)));
   }
 
 

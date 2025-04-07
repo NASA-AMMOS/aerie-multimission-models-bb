@@ -14,7 +14,6 @@ import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException
 import missionmodel.geometry.interfaces.TimeDependentStateCalculator;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.returnedobjects.*;
-import gov.nasa.jpl.time.Time;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import spice.basic.SpiceErrorException;
 import spice.basic.SpiceException;
@@ -47,6 +46,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   public boolean useLinearResources;
 
   protected Optional<Registrar> registrar;
+
+  private static final String EARTH = "EARTH";
+  private static final String SUN = "SUN";
 
   public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Instant planStart, boolean useLinearResources, Optional<Registrar> registrar) {
     this.absClock = absoluteClock;
@@ -88,7 +90,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     while (true) {
       try {
         var t = spiceStartTime.plus(gov.nasa.jpl.time.Duration.fromHours(hours));
-        var state = calc.getState(t, Integer.toString(sc_id), "SUN", abcorr);
+        var state = calc.getState(t, Integer.toString(sc_id), SUN, abcorr);
         if (debug) System.out.println("determineSpiceStart(): t = " + t + ", state = " + (state == null ? "null" : "" + Arrays.deepToString(state)));
         // currently just giving up after 48 hours from the getCoverage() value;
         // Voyager 1 light time was about 23 hours away in 2024
@@ -123,14 +125,14 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     set(geomRes.BodyHalfAngleSize.get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
 
     // this section is also multi-mission; the Sun can't have an angle from itself
-    if (!body.getName().equals("SUN")) {
+    if (!body.getName().equals(SUN)) {
       sunPositionAndVelocityWRTBody = sunPositionAndVelocityWRTBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
       set(geomRes.SunSpacecraftBodyAngle.get(body.getName()), sunSpacecraftBodyAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
       set(geomRes.SunBodySpacecraftAngle.get(body.getName()), sunBodySpacecraftAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
     }
 
     // this section is multi-mission because all missions have to communicate with Earth
-    if (body.getName().equals("EARTH")) {
+    if (body.getName().equals(EARTH)) {
       Double ult = upleg_time(JPLTimeConvertUtility.nowJplTime(absClock));
       set(geomRes.upleg_time, ult);
       set(geomRes.downleg_time, downleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
@@ -138,8 +140,8 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       RADec scRADec = scRADec(JPLTimeConvertUtility.nowJplTime(absClock));
       set(geomRes.spacecraftDeclination, scRADec.getDec());
       set(geomRes.spacecraftRightAscension, scRADec.getRA());
-      set(geomRes.EarthSunProbeAngle, earthSunProbeAngle(currentValue(geomRes.SunBodySpacecraftAngle.get("EARTH")),
-        currentValue(geomRes.SunSpacecraftBodyAngle.get("EARTH"))));
+      set(geomRes.EarthSunProbeAngle, earthSunProbeAngle(currentValue(geomRes.SunBodySpacecraftAngle.get(EARTH)),
+        currentValue(geomRes.SunSpacecraftBodyAngle.get(EARTH))));
     }
 
     // then we calculate things depending if the body was initialized to ask for it
@@ -165,16 +167,16 @@ public class GenericGeometryCalculator implements GeometryCalculator {
         currentValue(geomRes.BODY_POS_ICRF.get(body.getName())))*(180.0/Math.PI));
     }
 
-    if(body.doCalculateBetaAngle() && !body.getName().equals("SUN")){
+    if(body.doCalculateBetaAngle() && !body.getName().equals(SUN)){
       // beta angle is the angle between the vector normal to the orbital plane (sc position x velocity) and the
       // vector from the body to the sun
       Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
       set(geomRes.BetaAngleByBody.get(body.getName()), (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate())*(180.0/Math.PI))-90);
     }
 
-    if(body.doCalculateSubSolarInformation() && !body.getName().equals("SUN")){
+    if(body.doCalculateSubSolarInformation() && !body.getName().equals(SUN)){
       SubPointInformation sp_sun = calc.getSubPointInformation(JPLTimeConvertUtility.nowJplTime(absClock),
-        "SUN", body.getName(), abcorr, body.useDSK());
+        SUN, body.getName(), abcorr, body.useDSK());
       LatLonCoord latLonSolarData = new LatLonCoord(sp_sun.getSpoint());
       // noone talks in radians lat/lon, so we convert to degrees
       set(geomRes.BodySubSolarPoint.get(body.getName()), new Vector3D(
@@ -237,7 +239,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   }
 
   public double upleg_time(Time t) {
-    var dur = Time.upleg(Time.max(t, spiceStartTime), sc_id, bodies.get("EARTH").getNAIFID());
+    var dur = Time.upleg(Time.max(t, spiceStartTime), sc_id, bodies.get(EARTH).getNAIFID());
     return dur.totalSeconds();
   }
 
@@ -246,7 +248,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   }
 
   public double downleg_time(Time t) {
-    var dur = Time.downleg(Time.max(t, spiceStartTime), sc_id, bodies.get("EARTH").getNAIFID());
+    var dur = Time.downleg(Time.max(t, spiceStartTime), sc_id, bodies.get(EARTH).getNAIFID());
     return dur.totalSeconds();
   }
 
@@ -273,7 +275,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   }
 
   public RADec scRADec(Time t) {
-    return scRADec(bodyPositionAndVelocityWRTSpacecraft(Time.max(t, spiceStartTime), "EARTH")[0]);
+    return scRADec(bodyPositionAndVelocityWRTSpacecraft(Time.max(t, spiceStartTime), EARTH)[0]);
   }
 
   public RADec scRADec(Duration t) {
@@ -298,7 +300,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
   Vector3D[] earthPositionAndVelocityWRTSC(Time t) {
     try {
-      return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), "EARTH", abcorr);
+      return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), EARTH, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
@@ -310,7 +312,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
   public Vector3D[] bodyPositionAndVelocityWRTEarth(Time t, String bodyName) {
     try {
-      return calc.getState(Time.max(t, spiceStartTime), "EARTH", bodyName, abcorr);
+      return calc.getState(Time.max(t, spiceStartTime), EARTH, bodyName, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
@@ -322,7 +324,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
   public Vector3D[] sunPositionAndVelocityWRTBody(Time t, String bodyName) {
     try {
-      return calc.getState(Time.max(t, spiceStartTime), bodyName, "SUN", abcorr);
+      return calc.getState(Time.max(t, spiceStartTime), bodyName, SUN, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
       e.printStackTrace();
     }
@@ -367,7 +369,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     return 180.0 - (sunBodySpacecraftAngleDeg + sunSpacecraftBodyAngleDeg);
   }
   public double earthSunProbeAngle(Time t) {
-    return earthSunProbeAngle(sunBodySpacecraftAngle(t, "EARTH"), sunSpacecraftBodyAngle(t, "EARTH"));
+    return earthSunProbeAngle(sunBodySpacecraftAngle(t, EARTH), sunSpacecraftBodyAngle(t, EARTH));
   }
   public double earthSunProbeAngle(Duration t) {
     return earthSunProbeAngle(d2t(t));
