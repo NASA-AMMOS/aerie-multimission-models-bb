@@ -35,6 +35,13 @@ public class SpiceResourcePopulater {
   private AbsoluteClock absClock;
 
   //public SpiceResourcePopulater(String filename, int sc_id, GeometryCalculator geoCalc, Window[] dataGaps, Duration paddingAroundDataGaps) {
+  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, String geomPath) {
+    this(geoCalc, absoluteClock, new Window[0], Duration.ZERO_DURATION, geomPath);
+  }
+  public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, Window[] dataGaps, gov.nasa.jpl.aerie.merlin.protocol.types.Duration paddingAroundDataGaps, String geomPath) {
+    this(geoCalc, absoluteClock, dataGaps, JPLTimeConvertUtility.getJplTimeDur(paddingAroundDataGaps), geomPath);
+  }
+
   public SpiceResourcePopulater(GenericGeometryCalculator geoCalc, AbsoluteClock absoluteClock, Window[] dataGaps, Duration paddingAroundDataGaps, String geomPath) {
     bodiesObj = new Bodies(geomPath, dataGaps, paddingAroundDataGaps);
     this.bodiesJsonObject = bodiesObj.getBodiesJson();

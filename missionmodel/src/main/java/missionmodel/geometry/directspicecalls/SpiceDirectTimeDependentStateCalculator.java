@@ -38,7 +38,7 @@ public class SpiceDirectTimeDependentStateCalculator implements TimeDependentSta
 
   public SpiceDirectTimeDependentStateCalculator(Map<String, Body> bodiesMap, boolean cachingOn){
     this.bodiesMap = bodiesMap;
-    this.spiceInfoMap = new TreeMap<>();
+    this.spiceInfoMap = new HashMap<>();
     this.caching = cachingOn;
   }
 
@@ -51,8 +51,8 @@ public class SpiceDirectTimeDependentStateCalculator implements TimeDependentSta
   }
 
   public Object getSpiceInfoValue(Time et, String infoType, Object[] expectedParameters) {
-    if (this.spiceInfoMap.containsKey(et)) { // check that values have been cached for this time
-      Map<String, List<Object>> spiceInfoAtTime = this.spiceInfoMap.get(et); // get the map of information at that time
+    Map<String, List<Object>> spiceInfoAtTime = this.spiceInfoMap.get(et); // get the map of information at that time
+    if (spiceInfoAtTime != null) { // check that values have been cached for this time
       if (spiceInfoAtTime.containsKey(infoType)) { // check if the the provided type of info (Ex. state, range, etc...) has been cached for this time
         List<Object> listOfInfo = spiceInfoAtTime.get(infoType); // get the data from this type of info
         // loop through the sets of information for this type of info at this time
