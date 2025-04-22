@@ -5,6 +5,7 @@ import gov.nasa.jpl.aerie.contrib.streamline.core.Resources;
 import gov.nasa.jpl.aerie.contrib.streamline.debugging.Logging;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.time.Duration;
+import missionmodel.dsn.resources.GroundStationResources;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
 import missionmodel.geometry.spiceinterpolation.SpiceResourcePopulater;
@@ -35,6 +36,8 @@ public final class Mission {
   public final SpiceResourcePopulater spiceResPop;
 
   public final GenericGeometryResources geometryResources;
+
+  public final GroundStationResources groundStationResources;
 
   public static final Integer SPICE_SCID = -74; // MRO
 
@@ -70,5 +73,7 @@ public final class Mission {
     // --------------------------------
     // GNC Model Integration
     this.gncDataModel = new GncDataModel(this.errorRegistrar);
+
+    this.groundStationResources = new GroundStationResources(this.errorRegistrar);
   }
 }
