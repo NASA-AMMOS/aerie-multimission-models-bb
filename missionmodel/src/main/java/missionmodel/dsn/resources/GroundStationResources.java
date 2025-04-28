@@ -1,4 +1,5 @@
 package missionmodel.dsn.resources;
+
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
 
 import gov.nasa.jpl.aerie.contrib.serialization.mappers.StringValueMapper;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.discrete;
+
 public class GroundStationResources {
   // non-arrayed resources
   public MutableResource<Discrete<Boolean>> SpacecraftInOccultation;
@@ -73,7 +75,6 @@ public class GroundStationResources {
   public Map<String, MutableResource<Discrete<String>>> SAFDescriptionPerStation;
 
 
-
   // Carter: mappers needed for Aerie!
   private static final StringValueMapper stringValueMapper = new StringValueMapper();
   private static final IntegerValueMapper integerValueMapper = new IntegerValueMapper();
@@ -87,36 +88,51 @@ public class GroundStationResources {
    * @param registrar
    */
   public GroundStationResources(Registrar registrar) {
-   // TODO Carter doesn't know enough Java to understand why we convert a List<String> to String[]
+    // TODO Carter doesn't know enough Java to understand why we convert a List<String> to String[]
 //   String[] downlinkBandsArray = GroundStationConstants.DOWNLINK_BANDS.toArray(new String[GroundStationConstants.DOWNLINK_BANDS.size()]);
 //   String[] dssTypesArray = DSNStationTypeMap.getDSNStationTypes().toArray(new String[DSNStationTypeMap.getDSNStationTypes().size()]);
 //   String[] dssNamesArray = DSNStationTypeMap.getDSNStationTypes().toArray(new String[DSNStationTypeMap.getDSNStationTypes().size()]);
-   var dssTypesArray = DSNStationTypeMap.getDSNStationTypes();
+    var downlinkBandsArray = GroundStationConstants.DOWNLINK_BANDS;
+    var dssTypesArray = DSNStationTypeMap.getDSNStationTypes();
 
-   ActiveTransmitter = resource(discrete(GroundStationRegex.NONE));
-   registrar.discrete("ActiveTransmitter", ActiveTransmitter, stringValueMapper);
-   FirstDdorStation = resource(discrete(GroundStationRegex.NONE));
-   registrar.discrete("FirstDdorStation", FirstDdorStation, stringValueMapper);
-   SecondDdorStation = resource(discrete(GroundStationRegex.NONE));
-   registrar.discrete("SecondDdorStation", SecondDdorStation, stringValueMapper);
-   FirstDdorStationCounter = resource(discrete(0));
-   registrar.discrete("FirstDdorStationCounter", FirstDdorStationCounter, integerValueMapper);
-   SecondDdorStationCounter = resource(discrete(0));
-   registrar.discrete("SecondDdorStationCounter", SecondDdorStationCounter, integerValueMapper);
-   NumberOfAvailableDdorStations = resource(discrete(0));
-   registrar.discrete("NumberOfAvailableDdorStations", NumberOfAvailableDdorStations, integerValueMapper);
-   SpacecraftInOccultation = resource(discrete(false));
-   registrar.discrete("SpacecraftInOccultation", SpacecraftInOccultation, booleanValueMapper);
+    ActiveTransmitter = resource(discrete(GroundStationRegex.NONE));
+    registrar.discrete("ActiveTransmitter", ActiveTransmitter, stringValueMapper);
+    FirstDdorStation = resource(discrete(GroundStationRegex.NONE));
+    registrar.discrete("FirstDdorStation", FirstDdorStation, stringValueMapper);
+    SecondDdorStation = resource(discrete(GroundStationRegex.NONE));
+    registrar.discrete("SecondDdorStation", SecondDdorStation, stringValueMapper);
+    FirstDdorStationCounter = resource(discrete(0));
+    registrar.discrete("FirstDdorStationCounter", FirstDdorStationCounter, integerValueMapper);
+    SecondDdorStationCounter = resource(discrete(0));
+    registrar.discrete("SecondDdorStationCounter", SecondDdorStationCounter, integerValueMapper);
+    NumberOfAvailableDdorStations = resource(discrete(0));
+    registrar.discrete("NumberOfAvailableDdorStations", NumberOfAvailableDdorStations, integerValueMapper);
+    SpacecraftInOccultation = resource(discrete(false));
+    registrar.discrete("SpacecraftInOccultation", SpacecraftInOccultation, booleanValueMapper);
+    DsnTrackScheduleTransition = resource(discrete(false));
+    registrar.discrete("DsnTrackScheduleTransition", DsnTrackScheduleTransition, booleanValueMapper);
+    SpacecraftReceiverInLock = resource(discrete(false));
+    registrar.discrete("SpacecraftReceiverInLock", SpacecraftReceiverInLock, booleanValueMapper);
+    TelemetryChange = resource(discrete(false));
+    registrar.discrete("TelemetryChange", TelemetryChange, booleanValueMapper);
 
-   DssTransmitter = dssTypesArray.stream().collect(Collectors.toMap(s -> s, s -> {
-     var r = resource(discrete(false));
-     registrar.discrete("DssTransmitter_" + s, r, booleanValueMapper);
-     return r;
-   }));
+    SpacecraftAntennaEarthPointed = downlinkBandsArray.stream().collect(Collectors.toMap(s->s, s->{
+      var r = resource(discrete(false));
+      registrar.discrete("SpacecraftAntennaEarthPointed_" + s, r, booleanValueMapper);
+      return r;
+    }));
 
- }
 
- // Replaced initializeGroundStationResources and singleton with a class instantiation so we can access registrar
-//  public static void initializeGroundStationResources(List<String> downlinkBands, List<String> dssTypes, List<String> dssNames) {
+
+
+    DssTransmitter = dssTypesArray.stream().collect(Collectors.toMap(s -> s, s -> {
+      var r = resource(discrete(false));
+      registrar.discrete("DssTransmitter_" + s, r, booleanValueMapper);
+      return r;
+    }));
+
+  }
+
+  // Carter: Replaced initializeGroundStationResources and singleton with a class instantiation so we can access registrar
 
 }

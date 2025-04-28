@@ -71,8 +71,9 @@ public class SetDSNStationConstants {
 
     // initialize DSN resources
     static {
-        GroundStationResources.initializeGroundStationResources(
-                GroundStationConstants.DOWNLINK_BANDS, DSNStationTypeMap.getDSNStationTypes(), DSNStationMap.getDSSNames());
+      // Carter: Don't initialize here; instead, we instantiate GroundStationResources as a sub-model
+//        GroundStationResources.initializeGroundStationResources(
+//                GroundStationConstants.DOWNLINK_BANDS, DSNStationTypeMap.getDSNStationTypes(), DSNStationMap.getDSSNames());
 
         ArrayList<String> antenna = new ArrayList<>();
         antenna.add("MGA");
