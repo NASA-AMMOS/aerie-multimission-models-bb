@@ -11,6 +11,7 @@ import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import missionmodel.dsn.constants.GroundStationConstants;
 import missionmodel.dsn.constants.GroundStationRegex;
 import missionmodel.dsn.support.DSNStationTypeMap;
+import missionmodel.utils.ArrayedState;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -116,12 +117,9 @@ public class GroundStationResources {
     TelemetryChange = resource(discrete(false));
     registrar.discrete("TelemetryChange", TelemetryChange, booleanValueMapper);
 
-    SpacecraftAntennaEarthPointed = downlinkBandsArray.stream().collect(Collectors.toMap(s->s, s->{
-      var r = resource(discrete(false));
-      registrar.discrete("SpacecraftAntennaEarthPointed_" + s, r, booleanValueMapper);
-      return r;
-    }));
-
+    SpacecraftAntennaEarthPointed = ArrayedState.onKeys(downlinkBandsArray)
+      .withInitialValues(k -> false)
+      .registeredAs("SpacecraftAntennaEarthPointed_", registrar, booleanValueMapper);
 
 
 
