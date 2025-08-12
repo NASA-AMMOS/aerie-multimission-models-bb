@@ -103,7 +103,7 @@ public class SpiceDirectEventGeneratorTest {
       assertSameWindowListsToWithin(DSNStationOccultation1, DSNStationOccultation2, new Duration("00:00:20"));
 
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
       fail();
     }
     if (debug) System.out.println("testGetOccultations() passes");
@@ -125,7 +125,7 @@ public class SpiceDirectEventGeneratorTest {
       List<Time> periapses2 = eventGenerator.getPeriapses(new Time("2024-01-02T00:00:00"), new Time("2024-01-02T04:00:00"), new Duration("0:5:00"), sc_id,      target, 10000, abcorr);
       assertSameTimeListsToWithin(periapses1, periapses2, new Duration("00:00:06"));
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
       fail();
     }
     if (debug) System.out.println("testGetPeriapses() passes");
@@ -145,7 +145,7 @@ public class SpiceDirectEventGeneratorTest {
       List<Time> apoapses2 = eventGenerator.getApoapses(new Time("2024-01-02T00:00:00"), new Time("2024-01-02T04:00:00"), new Duration("0:5:00"), sc_id,      target, 0, abcorr);
       assertSameTimeListsToWithin(apoapses1, apoapses2, new Duration("00:00:03"));
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
       fail();
     }
     if (debug) System.out.println("testGetApoapses() passes");
@@ -171,7 +171,7 @@ public class SpiceDirectEventGeneratorTest {
       assertTrue(new Duration("23T01:41:31.903672").equalToWithin(conjunctions.get(0).getDuration(), Duration.HOUR_DURATION));
 
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
       fail();
     }
     if (debug) System.out.println("testGetConjunctions() passes");

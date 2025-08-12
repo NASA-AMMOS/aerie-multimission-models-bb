@@ -233,7 +233,7 @@ public class PointingActivity {
       DiscreteEffects.set(model.gncDataModel.IsSlewing, Boolean.FALSE);
     } catch (AttitudeNotAvailableException e) {
       // TODO: Bail?
-      e.printStackTrace();
+      System.err.println("AttitudeNotAvailableException: " + e.getMessage());
     }
   }
 

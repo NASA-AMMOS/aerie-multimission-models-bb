@@ -99,7 +99,6 @@ public class GenericGeometryCalculator implements GeometryCalculator {
         else break;
       } catch (GeometryInformationNotAvailableException e) {
         if (debug) System.out.println("Got exception trying to determine when spice starts: " + e.getLocalizedMessage());
-        if (debug) e.printStackTrace();
         if (hours >= 48) break;
         hours += 1;
       }
@@ -260,7 +259,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     try {
       return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), bodyName, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }
     return new Vector3D[]{};
   }
@@ -302,7 +301,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     try {
       return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), EARTH, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }
     return new Vector3D[]{};
   }
@@ -314,7 +313,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     try {
       return calc.getState(Time.max(t, spiceStartTime), EARTH, bodyName, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }
     return new Vector3D[]{};
   }
@@ -326,7 +325,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     try {
       return calc.getState(Time.max(t, spiceStartTime), bodyName, SUN, abcorr);
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }
     return new Vector3D[]{};
   }

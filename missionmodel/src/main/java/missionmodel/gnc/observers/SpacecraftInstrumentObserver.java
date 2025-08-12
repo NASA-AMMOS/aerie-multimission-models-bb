@@ -51,7 +51,7 @@ public class SpacecraftInstrumentObserver implements Observer {
             spacecraftID = CSPICE.bods2c(obsBody);
             spacecraftFrame = CSPICE.bodc2n(spacecraftID * 1000);
         } catch (SpiceErrorException | IDCodeNotFoundException | NameNotFoundException spiceErrorException) {
-            spiceErrorException.printStackTrace();
+            System.err.println(spiceErrorException.getClass() + ": " + spiceErrorException.getMessage());
         }
 
         // Get the observer in the spacecraft frame
@@ -59,7 +59,7 @@ public class SpacecraftInstrumentObserver implements Observer {
         try {
             CSPICE.getfov(CSPICE.bods2c(instrumentSpiceName), new String[1], new String[1], observerVector, new int[1], new double[12]);
         } catch (SpiceErrorException | IDCodeNotFoundException err) {
-            err.printStackTrace();
+            System.err.println(err.getClass() + ": " + err.getMessage());
         }
         // Make unit vector if not already
         Vector3D observerInItsFrame = new Vector3D(observerVector);
@@ -68,7 +68,7 @@ public class SpacecraftInstrumentObserver implements Observer {
         try {
             return Objects.requireNonNull(AttitudeFunctions.getFixedFrameRotationWithSpice(instrumentSpiceName, spacecraftFrame)).applyTo(observerInItsFrame).normalize();
         } catch (SpiceErrorException e) {
-            e.printStackTrace();
+            System.err.println("SpiceErrorException: " + e.getMessage());
         }
         return null;
     }

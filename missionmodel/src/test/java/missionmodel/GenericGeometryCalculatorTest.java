@@ -67,7 +67,7 @@ public class GenericGeometryCalculatorTest {
       assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunSpacecraftBodyAngle.get("MARS")), 0.01);
       assertEquals(stateCalculator.getEarthSunProbeAngle(t, sc_str, "LT+S"), currentValue(geoRes.EarthSunProbeAngle), 0.01);
     } catch (GeometryInformationNotAvailableException e) {
-      e.printStackTrace();
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }
     if (debug) System.out.println("testCalculateGeometry() passes");
   }

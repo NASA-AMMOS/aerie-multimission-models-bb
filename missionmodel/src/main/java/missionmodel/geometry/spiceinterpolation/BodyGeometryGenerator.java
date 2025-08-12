@@ -63,7 +63,7 @@ public class BodyGeometryGenerator {
       try {
         geoCalc.calculateGeometry(bodies.get(bodyName));
       } catch (GeometryInformationNotAvailableException e) {
-        e.printStackTrace();
+        System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
       }
       Map.Entry<String, Time> nextTimeAndBody = stepGenerator.nextTimeToJumpToAndItsBody(bodyName);
 
