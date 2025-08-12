@@ -56,7 +56,7 @@ public class VariableTimeStepGenerator {
     // remove 4 calculations ago from history and add newest calculation
     previousCalculatedValuesPerBody.get(bodyName).push(new AbstractMap.SimpleEntry<>(
       JPLTimeConvertUtility.nowJplTime(absoluteClock),
-      currentValue(geomRes.BODY_POS_ICRF.get(bodyName))));
+      currentValue(geomRes.getBODY_POS_ICRF().get(bodyName))));
 
     Duration timeStep;
 

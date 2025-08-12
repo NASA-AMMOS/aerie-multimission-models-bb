@@ -32,17 +32,17 @@ public class SpacecraftEnterEclipse {
 
   @ActivityType.EffectModel
   public void run(Mission model){
-    EclipseTypes priorType = currentValue(model.geometryResources.SpacecraftEclipseByBody.get(body));
-    set(model.geometryResources.SpacecraftEclipseByBody.get(body), type);
+    EclipseTypes priorType = currentValue(model.geometryResources.getSpacecraftEclipseByBody().get(body));
+    set(model.geometryResources.getSpacecraftEclipseByBody().get(body), type);
 
     EclipseTypes worstOverallEclipseType = getWorstEclipseFromAllBodies(model);
-    set(model.geometryResources.AnySpacecraftEclipse, type);
+    set(model.geometryResources.getAnySpacecraftEclipse(), type);
 
     if(worstOverallEclipseType.equals(EclipseTypes.FULL)){
-      set(model.geometryResources.FractionOfSunNotInEclipse, 0.0);
+      set(model.geometryResources.getFractionOfSunNotInEclipse(), 0.0);
     }
     else if(type.equals(EclipseTypes.NONE)){
-      set(model.geometryResources.FractionOfSunNotInEclipse, 1.0);
+      set(model.geometryResources.getFractionOfSunNotInEclipse(), 1.0);
     }
     else{
       // this controls how high fidelity your partial eclipse model is
@@ -53,11 +53,11 @@ public class SpacecraftEnterEclipse {
           // some call to vzfrac that we don't have access to yet, so instead let's be dumb
           if(priorType.equals(EclipseTypes.NONE)) {
             // We are transitioning from full Sun to less than full Sun
-            set(model.geometryResources.FractionOfSunNotInEclipse, (1.0- (((double) i) / num_segments)));
+            set(model.geometryResources.getFractionOfSunNotInEclipse(), (1.0- (((double) i) / num_segments)));
           }
           else{
             // we're transitioning from full back to none
-            set(model.geometryResources.FractionOfSunNotInEclipse, ((double) i) / num_segments);
+            set(model.geometryResources.getFractionOfSunNotInEclipse(), ((double) i) / num_segments);
           }
           delay(stepTime);
       }
@@ -70,7 +70,7 @@ public class SpacecraftEnterEclipse {
   static EclipseTypes getWorstEclipseFromAllBodies(Mission model){
     EclipseTypes worstEclipse = EclipseTypes.NONE;
     for(Body body: GenericGeometryResources.getBodies().values()){
-      EclipseTypes thisBodysWorstEclipse = currentValue(model.geometryResources.SpacecraftEclipseByBody.get(body.getName()));
+      EclipseTypes thisBodysWorstEclipse = currentValue(model.geometryResources.getSpacecraftEclipseByBody().get(body.getName()));
       if(!thisBodysWorstEclipse.equals(EclipseTypes.NONE)){
         if(worstEclipse.equals(EclipseTypes.NONE)){
           worstEclipse = thisBodysWorstEclipse;

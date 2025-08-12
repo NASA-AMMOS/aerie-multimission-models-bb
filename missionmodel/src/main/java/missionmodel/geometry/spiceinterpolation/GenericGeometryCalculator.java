@@ -117,30 +117,30 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     Vector3D[] sunPositionAndVelocityWRTBody = null;
 
     // calculate some quantities for every body
-    set(geomRes.BODY_POS_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
-    set(geomRes.BODY_VEL_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
-    set(geomRes.SpacecraftBodyRange.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
-    set(geomRes.SpacecraftBodySpeed.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
-    set(geomRes.BodyHalfAngleSize.get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
+    set(geomRes.getBODY_POS_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
+    set(geomRes.getBODY_VEL_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
+    set(geomRes.getSpacecraftBodyRange().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
+    set(geomRes.getSpacecraftBodySpeed().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
+    set(geomRes.getBodyHalfAngleSize().get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
 
     // this section is also multi-mission; the Sun can't have an angle from itself
     if (!body.getName().equals(SUN)) {
       sunPositionAndVelocityWRTBody = sunPositionAndVelocityWRTBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
-      set(geomRes.SunSpacecraftBodyAngle.get(body.getName()), sunSpacecraftBodyAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
-      set(geomRes.SunBodySpacecraftAngle.get(body.getName()), sunBodySpacecraftAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
+      set(geomRes.getSunSpacecraftBodyAngle().get(body.getName()), sunSpacecraftBodyAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
+      set(geomRes.getSunBodySpacecraftAngle().get(body.getName()), sunBodySpacecraftAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
     }
 
     // this section is multi-mission because all missions have to communicate with Earth
     if (body.getName().equals(EARTH)) {
       Double ult = upleg_time(JPLTimeConvertUtility.nowJplTime(absClock));
-      set(geomRes.upleg_time, ult);
-      set(geomRes.downleg_time, downleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
-      set(geomRes.rtlt, ult + downleg_time(JPLTimeConvertUtility.nowJplTime(absClock).plus(gov.nasa.jpl.time.Duration.fromSeconds(ult))));
+      set(geomRes.getUpleg_time(), ult);
+      set(geomRes.getDownleg_time(), downleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
+      set(geomRes.getRtlt(), ult + downleg_time(JPLTimeConvertUtility.nowJplTime(absClock).plus(gov.nasa.jpl.time.Duration.fromSeconds(ult))));
       RADec scRADec = scRADec(JPLTimeConvertUtility.nowJplTime(absClock));
-      set(geomRes.spacecraftDeclination, scRADec.getDec());
-      set(geomRes.spacecraftRightAscension, scRADec.getRA());
-      set(geomRes.EarthSunProbeAngle, earthSunProbeAngle(currentValue(geomRes.SunBodySpacecraftAngle.get(EARTH)),
-        currentValue(geomRes.SunSpacecraftBodyAngle.get(EARTH))));
+      set(geomRes.getSpacecraftDeclination(), scRADec.getDec());
+      set(geomRes.getSpacecraftRightAscension(), scRADec.getRA());
+      set(geomRes.getEarthSunProbeAngle(), earthSunProbeAngle(currentValue(geomRes.getSunBodySpacecraftAngle().get(EARTH)),
+        currentValue(geomRes.getSunSpacecraftBodyAngle().get(EARTH))));
     }
 
     // then we calculate things depending if the body was initialized to ask for it
@@ -148,12 +148,12 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       Vector3D[] bodyPositionAndVelocityWRTEarth =
         bodyPositionAndVelocityWRTEarth(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
       RADec earthRaDec = new RADec(bodyPositionAndVelocityWRTEarth[0], Vector3D.ZERO);
-      set(geomRes.EarthRaDecByBody.get(body.getName()).get("Ra"), earthRaDec.getRA());
-      set(geomRes.EarthRaDecByBody.get(body.getName()).get("Dec"), earthRaDec.getDec());
+      set(geomRes.getEarthRaDecByBody().get(body.getName()).get("Ra"), earthRaDec.getRA());
+      set(geomRes.getEarthRaDecByBody().get(body.getName()).get("Dec"), earthRaDec.getDec());
 
-      double spacecraftRAFromEarth = currentValue(geomRes.spacecraftRightAscension);
+      double spacecraftRAFromEarth = currentValue(geomRes.getSpacecraftRightAscension());
       double bodyRAFromEarth = earthRaDec.getRA();
-      set(geomRes.EarthRaDeltaWithSCByBody.get(body.getName()),
+      set(geomRes.getEarthRaDeltaWithSCByBody().get(body.getName()),
         Math.min(Math.min(Math.abs(spacecraftRAFromEarth - bodyRAFromEarth),
             Math.abs(spacecraftRAFromEarth - bodyRAFromEarth + 360)),
           Math.abs(spacecraftRAFromEarth - bodyRAFromEarth - 360)));
@@ -162,15 +162,15 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     if(body.doCalculateEarthSpacecraftBodyAngle()){
       Vector3D[] earthPositionAndVelocityWRTSC = earthPositionAndVelocityWRTSC(JPLTimeConvertUtility.nowJplTime(absClock));
       // this also comes in as radians and we want degrees
-      set(geomRes.EarthSpacecraftBodyAngle.get(body.getName()), Vector3D.angle(earthPositionAndVelocityWRTSC[0],
-        currentValue(geomRes.BODY_POS_ICRF.get(body.getName())))*(180.0/Math.PI));
+      set(geomRes.getEarthSpacecraftBodyAngle().get(body.getName()), Vector3D.angle(earthPositionAndVelocityWRTSC[0],
+        currentValue(geomRes.getBODY_POS_ICRF().get(body.getName())))*(180.0/Math.PI));
     }
 
     if(body.doCalculateBetaAngle() && !body.getName().equals(SUN)){
       // beta angle is the angle between the vector normal to the orbital plane (sc position x velocity) and the
       // vector from the body to the sun
       Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
-      set(geomRes.BetaAngleByBody.get(body.getName()), (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate())*(180.0/Math.PI))-90);
+      set(geomRes.getBetaAngleByBody().get(body.getName()), (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate())*(180.0/Math.PI))-90);
     }
 
     if(body.doCalculateSubSolarInformation() && !body.getName().equals(SUN)){
@@ -178,7 +178,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
         SUN, body.getName(), abcorr, body.useDSK());
       LatLonCoord latLonSolarData = new LatLonCoord(sp_sun.getSpoint());
       // noone talks in radians lat/lon, so we convert to degrees
-      set(geomRes.BodySubSolarPoint.get(body.getName()), new Vector3D(
+      set(geomRes.getBodySubSolarPoint().get(body.getName()), new Vector3D(
         latLonSolarData.getLatitude()*(180.0/Math.PI),
         latLonSolarData.getLongitude()*(180.0/Math.PI),
            latLonSolarData.getRadius()));
@@ -190,19 +190,19 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       if(sp_sc.isFound()) {
         if(body.doCalculateSubSCPoint() || body.doCalculateAltitude()) {
           LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("dist"), sp_sc.getSrfvec().getNorm());
+          set(geomRes.getBodySubSCPoint().get(body.getName()).get("dist"), sp_sc.getSrfvec().getNorm());
           // noone talks in radians lat/lon, so we convert to degrees
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("latitude"), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("longitude"), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("radius"), latLonSurfaceData.getRadius());
+          set(geomRes.getBodySubSCPoint().get(body.getName()).get("latitude"), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
+          set(geomRes.getBodySubSCPoint().get(body.getName()).get("longitude"), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
+          set(geomRes.getBodySubSCPoint().get(body.getName()).get("radius"), latLonSurfaceData.getRadius());
           if(body.doCalculateAltitude()){
-            set(geomRes.SpacecraftAltitude.get(body.getName()),
+            set(geomRes.getSpacecraftAltitude().get(body.getName()),
               bodyPositionAndVelocityWRTSpacecraft[0].getNorm()-latLonSurfaceData.getRadius());
           }
 
           if(body.doCalculateLST()){
             try {
-              set(geomRes.BodySubSCPoint.get(body.getName()).get("LST"),
+              set(geomRes.getBodySubSCPoint().get(body.getName()).get("LST"),
                 et2LSTHours(JPLTimeConvertUtility.nowJplTime(absClock), body.getNAIFID(), latLonSurfaceData.getLongitude()));
             } catch (SpiceErrorException e) {
               throw new GeometryInformationNotAvailableException(e.getMessage());
@@ -213,9 +213,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
         if (body.doCalculateIlluminationAngles()) {
           IlluminationAngles illumAngles = calc.getIlluminationAngles(JPLTimeConvertUtility.nowJplTime(absClock),
             Integer.toString(sc_id), body.getName(), abcorr, body.useDSK());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("phase"), illumAngles.getPhaseAngle());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("incidence"), illumAngles.getIncidenceAngle());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("emission"), illumAngles.getEmissionAngle());
+          set(geomRes.getIlluminationAnglesByBody().get(body.getName()).get("phase"), illumAngles.getPhaseAngle());
+          set(geomRes.getIlluminationAnglesByBody().get(body.getName()).get("incidence"), illumAngles.getIncidenceAngle());
+          set(geomRes.getIlluminationAnglesByBody().get(body.getName()).get("emission"), illumAngles.getEmissionAngle());
         }
       }
     }
@@ -226,15 +226,15 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       // we only want to set inclination and orbit period if eccentricity is less than 1, because otherwise we're not actually in orbit and we get NaN for orbit period
       if(SCOrbitOfBody.getEccentricity() < 1) {
         double semiMajorAxis = SCOrbitOfBody.getPerifocalDistance() / (1 - SCOrbitOfBody.getEccentricity());
-        set(geomRes.orbitInclinationByBody.get(body.getName()), SCOrbitOfBody.getInclination() * (180.0 / Math.PI));
-        set(geomRes.orbitPeriodByBody.get(body.getName()), 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / body.getMu()));
+        set(geomRes.getOrbitInclinationByBody().get(body.getName()), SCOrbitOfBody.getInclination() * (180.0 / Math.PI));
+        set(geomRes.getOrbitPeriodByBody().get(body.getName()), 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / body.getMu()));
       }
     }
 
   }
 
   private Time d2t(Duration d) {
-    return jplTimeFromUTCInstant(Duration.addToInstant(absClock.startTime, d));
+    return jplTimeFromUTCInstant(Duration.addToInstant(absClock.getStartTime(), d));
   }
 
   public double upleg_time(Time t) {

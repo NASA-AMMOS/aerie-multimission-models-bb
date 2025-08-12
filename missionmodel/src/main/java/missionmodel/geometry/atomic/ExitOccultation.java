@@ -27,7 +27,7 @@ public class ExitOccultation {
   public void run(Mission model){
     //setGroup("OccultationEvents");
     // setName("EnterOccultation_" + body + "_SeenFrom_" + station);
-    DiscreteEffects.decrement(model.geometryResources.Occultation, 1);
-    DiscreteEffects.turnOff(model.geometryResources.SpacecraftOccultationByBodyAndStation.get(body).get(station));
+    DiscreteEffects.decrement(model.geometryResources.getOccultation(), 1);
+    DiscreteEffects.turnOff(model.geometryResources.getSpacecraftOccultationByBodyAndStation().get(body).get(station));
   }
 }
