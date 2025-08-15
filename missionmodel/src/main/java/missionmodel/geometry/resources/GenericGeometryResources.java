@@ -5,6 +5,7 @@ import gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource;
 import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.Approximation;
+
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.SecantApproximation;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.Unstructured;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.monads.UnstructuredResourceApplicative;
@@ -135,7 +136,7 @@ public class GenericGeometryResources {
    * @param geometryCalculator the class for calculating resources, necessary for defining some resources and sharing
    *                           the time of the start of SPICE data and whether to use linear or discrete resources
    */
-  public GenericGeometryResources(Optional<Registrar> reg, Map<String, Body> allBodies, GenericGeometryCalculator geometryCalculator) {
+  public GenericGeometryResources(Registrar reg, Map<String, Body> allBodies, GenericGeometryCalculator geometryCalculator) {
     this.geometryCalculator = geometryCalculator;
     this.spiceStart = geometryCalculator.spiceStart;
     linearTimeBased = geometryCalculator.useLinearResources;
@@ -189,32 +190,23 @@ public class GenericGeometryResources {
     orbitPeriodByBody = new HashMap<>();
 
     Apoapsis = new HashMap<>();
-    //Apoapsis_p = new HashMap<>();
     Periapsis = new HashMap<>();
-    //Periapsis_p = new HashMap<>();
 
     boolean linear = geometryCalculator.useLinearResources;
 
     // Non-arrayed resources
-    //upleg_time = new DoubleResource("upleg_time", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
     var upleg_time_d = resource(discrete(0.0));
     var upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));
     var upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, EARTH);
     register_p(reg, "upleg_time", upleg_time_d, upleg_time_p, dvm);
     upleg_time = new DoubleResource(upleg_time_d, upleg_time_u, upleg_time_p);
 
-    //downleg_time = new DoubleResource("downleg_time", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
     var downleg_time_d = resource(discrete(0.0));
     var downleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::downleg_duration)));
     var downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, EARTH);
     register_p(reg, "downleg_time", downleg_time_d, downleg_time_p, dvm);
     downleg_time = new DoubleResource(downleg_time_d, downleg_time_u, downleg_time_p);
 
-//    rtlt = new DoubleResource("downleg_time", EARTH, bodyObjects, linear, false, false, optimizeSampling, fit(t -> {
-//      Double ult = geometryCalculator.upleg_duration(t) * 1e6;
-//      var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;
-//      return (ult + dlt)/1e6;
-//    }), reg);
     var rtlt_d = resource(discrete(0.0));
     var rtlt_u = resource(Unstructured.timeBased(fit(t -> {
       Double ult = geometryCalculator.upleg_duration(t) * 1e6;
@@ -225,7 +217,6 @@ public class GenericGeometryResources {
     rtlt = new DoubleResource(rtlt_d, rtlt_u, rtlt_p);
 
     radec_u = resource(Unstructured.timeBased(fit(geometryCalculator::scRADec)));
-    //spacecraftDeclination = new DoubleResource("spacecraftDeclination", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
     var spacecraftDeclination_d = resource(discrete(0.0));
     var spacecraftDeclination_u = UnstructuredResourceApplicative.map(radec_u, RADec::getDec);
     var spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, EARTH);
@@ -245,16 +236,16 @@ public class GenericGeometryResources {
     EarthSunProbeAngle = new DoubleResource(EarthSunProbeAngle_d, EarthSunProbeAngle_u, EarthSunProbeAngle_p);
 
     AnySpacecraftEclipse = resource(discrete(EclipseTypes.NONE));
-    if (!reg.isEmpty()) reg.get().discrete("AnySpacecraftEclipse", AnySpacecraftEclipse, new EnumValueMapper<>(EclipseTypes.class));
+    if (reg != null) reg.discrete("AnySpacecraftEclipse", AnySpacecraftEclipse, new EnumValueMapper<>(EclipseTypes.class));
 
     Occultation = resource(discrete(0));
-    if (!reg.isEmpty()) reg.get().discrete("Occultation", Occultation, ivm);
+    if (reg != null) reg.discrete("Occultation", Occultation, ivm);
 
     FractionOfSunNotInEclipse = resource(discrete(1.0));
-    if (!reg.isEmpty()) reg.get().discrete("FractionOfSunNotInEclipse", FractionOfSunNotInEclipse, dvm);
+    if (reg != null) reg.discrete("FractionOfSunNotInEclipse", FractionOfSunNotInEclipse, dvm);
 
     LitOrDarkSide = resource(discrete(0));
-    if (!reg.isEmpty()) reg.get().discrete("LitOrDarkSide", LitOrDarkSide, ivm);
+    if (reg != null) reg.discrete("LitOrDarkSide", LitOrDarkSide, ivm);
 
     // loop through bodies to build and register arrayed resources
     for (String body : bodies) {
@@ -298,28 +289,28 @@ public class GenericGeometryResources {
       register_p(reg, "SunBodySpacecraftAngle_" + body, sunBodySpacecraftAngle_d, sunBodySpacecraftAngle_p, withUnit("deg", dvm));
 
       BodyHalfAngleSize.put(body, resource(discrete(0.0)));
-      if (!reg.isEmpty()) reg.get().discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", dvm));
+      if (reg != null) reg.discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", dvm));
 
       if (betaAngleBodies.contains(body)) {
         BetaAngleByBody.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("BetaAngle_" + body, BetaAngleByBody.get(body), withUnit("deg", dvm));
+        if (reg != null) reg.discrete("BetaAngle_" + body, BetaAngleByBody.get(body), withUnit("deg", dvm));
       }
 
       if (earthSpacecraftBodies.contains(body)) {
         EarthSpacecraftBodyAngle.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("EarthSpacecraftAngle_" + body, EarthSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
+        if (reg != null) reg.discrete("EarthSpacecraftAngle_" + body, EarthSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
       }
 
       if (altitudeBodies.contains(body)) {
         SpacecraftAltitude.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("SpacecraftAltitude_" + body, SpacecraftAltitude.get(body), withUnit("km", dvm));
+        if (reg != null) reg.discrete("SpacecraftAltitude_" + body, SpacecraftAltitude.get(body), withUnit("km", dvm));
       }
 
       if (illuminationBodies.contains(body)) {
         Map<String, MutableResource<Discrete<Double>>> illumAnglesMap = new HashMap<>();
         for (String angle : illumAngles) {
           illumAnglesMap.put(angle, resource(discrete(0.0)));
-          if (!reg.isEmpty()) reg.get().discrete("IlluminationAnglesByBody_" + body + "_" + angle,
+          if (reg != null) reg.discrete("IlluminationAnglesByBody_" + body + "_" + angle,
             illumAnglesMap.get(angle), withUnit("deg", dvm));
         }
         IlluminationAnglesByBody.put(body, illumAnglesMap);
@@ -329,12 +320,12 @@ public class GenericGeometryResources {
         Map<String, MutableResource<Discrete<Double>>> EarthRaDecMap = new HashMap<>();
         for (String angle : raDecIndices) {
           EarthRaDecMap.put(angle, resource(discrete(0.0)));
-          if (!reg.isEmpty()) reg.get().discrete("EarthRaDecByBody_" + body + "_" + angle,
+          if (reg != null) reg.discrete("EarthRaDecByBody_" + body + "_" + angle,
             EarthRaDecMap.get(angle), withUnit("deg", dvm));
         }
         EarthRaDecByBody.put(body, EarthRaDecMap);
         EarthRaDeltaWithSCByBody.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("EarthRaDeltaWithSCByBody_" + body, EarthRaDeltaWithSCByBody.get(body), withUnit("deg", dvm));
+        if (reg != null) reg.discrete("EarthRaDeltaWithSCByBody_" + body, EarthRaDeltaWithSCByBody.get(body), withUnit("deg", dvm));
       }
 
       if (subSolarBodies.contains(body)) {
@@ -346,39 +337,39 @@ public class GenericGeometryResources {
         Map<String, MutableResource<Discrete<Double>>> subSCMap = new HashMap<>();
         for (String index : subSCIndices) {
           subSCMap.put(index, resource(discrete(0.0)));
-          if (!reg.isEmpty()) reg.get().discrete("subSCBodies_" + body + "_" + index,
+          if (reg != null) reg.discrete("subSCBodies_" + body + "_" + index,
             subSCMap.get(index), dvm);
         }
         BodySubSCPoint.put(body, subSCMap);
       }
 
       SpacecraftEclipseByBody.put(body, resource(discrete(EclipseTypes.NONE)));
-      if (!reg.isEmpty()) reg.get().discrete("SpacecraftEclipseByBody_" + body,
+      if (reg != null) reg.discrete("SpacecraftEclipseByBody_" + body,
         SpacecraftEclipseByBody.get(body), new EnumValueMapper<>(EclipseTypes.class));
 
       Map<String, MutableResource<Discrete<Boolean>>> occultationStationMap = new HashMap<>();
       for (Map.Entry<String,String> entry : ComplexRepresentativeStation.entrySet()) {
         occultationStationMap.put(entry.getValue(), resource(discrete(false)));
-        if (!reg.isEmpty()) reg.get().discrete("IlluminationAnglesByBody_" + body + "_" + entry.getKey(),
+        if (reg != null) reg.discrete("IlluminationAnglesByBody_" + body + "_" + entry.getKey(),
           occultationStationMap.get(entry.getValue()), bvm);
       }
       SpacecraftOccultationByBodyAndStation.put(body, occultationStationMap);
 
       if (orbitParameterBodies.contains(body)) {
         orbitInclinationByBody.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("orbitInclinationByBody_" + body,
+        if (reg != null) reg.discrete("orbitInclinationByBody_" + body,
           orbitInclinationByBody.get(body), withUnit("deg", dvm));
 
         orbitPeriodByBody.put(body, resource(discrete(0.0)));
-        if (!reg.isEmpty()) reg.get().discrete("orbitPeriodByBody_" + body,
+        if (reg != null) reg.discrete("orbitPeriodByBody_" + body,
           orbitPeriodByBody.get(body), withUnit("s", dvm));
       }
 
       Periapsis.put(body, resource(discrete(false)));
-      if (!reg.isEmpty()) reg.get().discrete("Periapsis_" + body, Periapsis.get(body), bvm);
+      if (reg != null) reg.discrete("Periapsis_" + body, Periapsis.get(body), bvm);
 
       Apoapsis.put(body, resource(discrete(false)));
-      if (!reg.isEmpty()) reg.get().discrete("Apoapsis_" + body, Apoapsis.get(body), bvm);
+      if (reg != null) reg.discrete("Apoapsis_" + body, Apoapsis.get(body), bvm);
     }
 
   }
@@ -449,35 +440,35 @@ public class GenericGeometryResources {
     bodyPositionAndVelocity_p.put(body, xyzn);
   }
 
-  public static void registerVector(Optional<Registrar> reg, String name, Resource<Discrete<Vector3D>> r) {
-    if (reg.isEmpty()) return;
-    reg.get().discrete(name + "_X", map(r, v -> v == null ? null : v.getX()), dvm);
-    reg.get().discrete(name + "_Y", map(r, v -> v == null ? null : v.getY()), dvm);
-    reg.get().discrete(name + "_Z", map(r, v -> v == null ? null : v.getZ()), dvm);
-    reg.get().discrete(name + "_magnitude", map(r, v -> v == null ? null : v.getNorm()), dvm);
+  public static void registerVector(Registrar reg, String name, Resource<Discrete<Vector3D>> r) {
+    if (reg == null) return;
+    reg.discrete(name + "_X", map(r, v -> v == null ? null : v.getX()), dvm);
+    reg.discrete(name + "_Y", map(r, v -> v == null ? null : v.getY()), dvm);
+    reg.discrete(name + "_Z", map(r, v -> v == null ? null : v.getZ()), dvm);
+    reg.discrete(name + "_magnitude", map(r, v -> v == null ? null : v.getNorm()), dvm);
   }
 
-  public static void registerRotation(Optional<Registrar> reg, String name, Resource<Discrete<Rotation>> rotationResource) {
-    if (reg.isEmpty()) return;
-    reg.get().discrete(name + ".Q0",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ0), dvm);
-    reg.get().discrete(name + ".Q1",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ1), dvm);
-    reg.get().discrete(name + ".Q2",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ2), dvm);
-    reg.get().discrete(name + ".Q3",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ3), dvm);
+  public static void registerRotation(Registrar reg, String name, Resource<Discrete<Rotation>> rotationResource) {
+    if (reg == null) return;
+    reg.discrete(name + ".Q0",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ0), dvm);
+    reg.discrete(name + ".Q1",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ1), dvm);
+    reg.discrete(name + ".Q2",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ2), dvm);
+    reg.discrete(name + ".Q3",  DiscreteResourceMonad.map(rotationResource, Rotation::getQ3), dvm);
   }
 
-  private void register_p(Optional<Registrar> r, String name, Resource<Discrete<Double>> rd, Resource<Linear> rl,
+  private void register_p(Registrar r, String name, Resource<Discrete<Double>> rd, Resource<Linear> rl,
                           ValueMapper<Double> vm) {
-    if (r.isEmpty()) return;
-    if (linearTimeBased) r.get().real(name, rl);
-    if (registerDiscrete) r.get().discrete(name, rd, vm);
+    if (r == null) return;
+    if (linearTimeBased) r.real(name, rl);
+    if (registerDiscrete) r.discrete(name, rd, vm);
   }
-  private void register_u(Optional<Registrar> r, String name, Resource<Discrete<Double>> rd, Resource<Unstructured<Double>> ru, String body) {
-    if (r.isEmpty()) return;
-    if (linearTimeBased) r.get().real(name, maybeApproximateAsLinear(ru, body));
-    if (registerDiscrete) r.get().discrete(name, rd, dvm);
+  private void register_u(Registrar r, String name, Resource<Discrete<Double>> rd, Resource<Unstructured<Double>> ru, String body) {
+    if (r == null) return;
+    if (linearTimeBased) r.real(name, maybeApproximateAsLinear(ru, body));
+    if (registerDiscrete) r.discrete(name, rd, dvm);
   }
 
-  private void registerUV(Optional<Registrar> r, String name, Resource<Discrete<Vector3D>> rd, Resource<Unstructured<Vector3D>> ru, String body) {
+  private void registerUV(Registrar r, String name, Resource<Discrete<Vector3D>> rd, Resource<Unstructured<Vector3D>> ru, String body) {
     register_u(r, name + "_X", map(rd, v -> v == null ? null : v.getX()),
       UnstructuredResourceApplicative.map(ru, v -> v == null ? null : v.getX()), body);
     register_u(r, name + "_Y", map(rd, v -> v == null ? null : v.getY()),

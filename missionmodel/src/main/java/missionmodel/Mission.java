@@ -62,7 +62,7 @@ public final class Mission {
     }
 
     // Initialize Geometry Model
-    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, SPICE_SCID, "LT+S", planStart, configuration.useLinearResources(), Optional.of(this.registrar));
+    this.geometryCalculator = new GenericGeometryCalculator(this.absoluteClock, SPICE_SCID, "LT+S", planStart, configuration.useLinearResources(), this.registrar);
     // Assume no gaps in SPICE data for now
     this.spiceResPop = new SpiceResourcePopulater(this.geometryCalculator, this.absoluteClock, new Window[]{}, Duration.ZERO_DURATION, config.geometryPath().toString());
     this.geometryResources = this.geometryCalculator.getResources();

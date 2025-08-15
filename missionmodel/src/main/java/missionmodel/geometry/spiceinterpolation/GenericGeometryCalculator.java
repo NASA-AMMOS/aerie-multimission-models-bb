@@ -45,12 +45,12 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   public Time spiceStartTime;
   public boolean useLinearResources;
 
-  protected Optional<Registrar> registrar;
+  protected Registrar registrar;
 
   private static final String EARTH = "EARTH";
   private static final String SUN = "SUN";
 
-  public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Instant planStart, boolean useLinearResources, Optional<Registrar> registrar) {
+  public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Instant planStart, boolean useLinearResources, Registrar registrar) {
     this.absClock = absoluteClock;
     this.sc_id = sc_id;
     this.abcorr = abcorr;

@@ -37,26 +37,25 @@ public class GncDataModel {
   private static StringValueMapper svm = new StringValueMapper();
 
   public GncDataModel(Registrar registrar) {
-    var optRegistrar = Optional.of(registrar);
     rotation = resource(discrete(Rotation.IDENTITY));
-    registerRotation(optRegistrar, "rotation", rotation);
+    registerRotation(registrar, "rotation", rotation);
     PointingAxis = resource(discrete(Z));
-    registerVector(optRegistrar, "PointingAxis", PointingAxis);
+    registerVector(registrar, "PointingAxis", PointingAxis);
     PointingRotationAngle = resource(discrete(0.0));
     registrar.discrete("PointingRotation", PointingRotationAngle, dvm);
     RotationRate = resource(discrete(Vector3D.ZERO));
-    registerVector(optRegistrar, "RotationRate", RotationRate);
+    registerVector(registrar, "RotationRate", RotationRate);
     IsSlewing = resource(discrete(Boolean.FALSE));
     registrar.discrete("IsSlewing", IsSlewing, bvm);
 
     primaryObserverString = resource(discrete("-Z"));
     registrar.discrete("PrimaryObserver", primaryObserverString, svm);
     primaryObserver = resource(discrete(X));
-    registerVector(optRegistrar, "PrimaryObserverVector", primaryObserver);
+    registerVector(registrar, "PrimaryObserverVector", primaryObserver);
     secondaryObserverString = resource(discrete("X"));
     registrar.discrete("SecondaryObserver", secondaryObserverString, svm);
     secondaryObserver = resource(discrete(Y));
-    registerVector(optRegistrar, "SecondaryObserverVector", secondaryObserver);
+    registerVector(registrar, "SecondaryObserverVector", secondaryObserver);
     primaryTarget = resource(discrete("EARTH"));
     registrar.discrete("PrimaryTarget", primaryTarget, svm);
     secondaryTarget = resource(discrete("SUN"));
