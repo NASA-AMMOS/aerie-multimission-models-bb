@@ -53,21 +53,12 @@ public class GenericGeometryResources {
 
   public static final double FLOAT_EPSILON = 0.0001;
   private static Map<String, Body> bodyObjects;
-  private static String[] bodies;
-  private static List<String> earthSpacecraftBodies;
-  private static List<String> altitudeBodies;
-  private static List<String> illuminationBodies;
-  private static List<String> raDecBodies;
-  private static List<String> subSolarBodies;
-  private static List<String> subSCBodies;
-  private static List<String> betaAngleBodies;
-  private static List<String> orbitParameterBodies;
 
   //private static String[] cartesian = new String[]{"x","y","z"};
-  private static String[] illumAngles = new String[]{"phase","incidence","emission"};
-  private static String[] raDecIndices = new String[]{"Ra", "Dec"};
+  private static final String[] illumAngles = new String[]{"phase","incidence","emission"};
+  private static final String[] raDecIndices = new String[]{"Ra", "Dec"};
   //private static String[] latLonCoordinates = new String[]{"latitude","longitude", "radius"};
-  private static String[] subSCIndices = new String[]{"dist","latitude","longitude","radius","LST"};
+  private static final String[] subSCIndices = new String[]{"dist","latitude","longitude","radius","LST"};
 
   private static final String EARTH = "EARTH";
 
@@ -78,16 +69,19 @@ public class GenericGeometryResources {
     ComplexRepresentativeStation.put("Madrid", "DSS-54");
   }
 
-  private final MutableResource<Discrete<Double>> upleg_time;
-  private final Resource<Unstructured<Double>> upleg_time_u;
-  private final Resource<Linear> upleg_time_p;
+  private final DoubleResource upleg_time;
+//  private final MutableResource<Discrete<Double>> upleg_time;
+//  private final Resource<Unstructured<Double>> upleg_time_u;
+//  private final Resource<Linear> upleg_time_p;
 
-  private final MutableResource<Discrete<Double>> downleg_time;
-  private final Resource<Unstructured<Double>> downleg_time_u;
-  private final Resource<Linear> downleg_time_p;
-  private final MutableResource<Discrete<Double>> rtlt;
-  private final Resource<Unstructured<Double>> rtlt_u;
-  private final Resource<Linear> rtlt_p;
+  private final DoubleResource downleg_time;
+//  private final MutableResource<Discrete<Double>> downleg_time;
+//  private final Resource<Unstructured<Double>> downleg_time_u;
+//  private final Resource<Linear> downleg_time_p;
+  private final DoubleResource rtlt;
+//  private final MutableResource<Discrete<Double>> rtlt;
+//  private final Resource<Unstructured<Double>> rtlt_u;
+//  private final Resource<Linear> rtlt_p;
   private final Map<String, Resource<Unstructured<Vector3D[]>>> bodyPositionAndVelocityWRTSpacecraft_u;
   private final Map<String, Resource<Linear>[][]> bodyPositionAndVelocityWRTSpacecraft_a;
   private final Map<String, List<Resource<Linear>>> bodyPositionAndVelocityWRTSpacecraft;
@@ -99,12 +93,15 @@ public class GenericGeometryResources {
   private final Map<String, List<Resource<Linear>>> bodyPositionAndVelocityWRTEarth;
 
   private final Resource<Unstructured<RADec>> radec_u;
-  private final MutableResource<Discrete<Double>> spacecraftDeclination;
-  private final Resource<Unstructured<Double>> spacecraftDeclination_u;
-  private final Resource<Linear> spacecraftDeclination_p;
-  private final MutableResource<Discrete<Double>> spacecraftRightAscension;
-  private final Resource<Unstructured<Double>> spacecraftRightAscension_u;
-  private final Resource<Linear> spacecraftRightAscension_p;
+  private final DoubleResource spacecraftDeclination;
+//  private final MutableResource<Discrete<Double>> spacecraftDeclination;
+//  private final Resource<Unstructured<Double>> spacecraftDeclination_u;
+//  private final Resource<Linear> spacecraftDeclination_p;
+  private final DoubleResource spacecraftRightAscension;
+//  private final MutableResource<Discrete<Double>> spacecraftRightAscension;
+//  private final Resource<Unstructured<Double>> spacecraftRightAscension_u;
+//  private final Resource<Linear> spacecraftRightAscension_p;
+  //private final Map<String, DoubleResource> BODY_POS_ICRF;
   private final Map<String, MutableResource<Discrete<Vector3D>>> BODY_POS_ICRF;
   private final Map<String, Resource<Unstructured<Vector3D>>> BODY_POS_ICRF_u;
   private final Map<String, Resource<Linear>[]> BODY_POS_ICRF_a;
@@ -191,15 +188,15 @@ public class GenericGeometryResources {
     linearTimeBased = geometryCalculator.useLinearResources;
     registerDiscrete = !geometryCalculator.useLinearResources;
     bodyObjects = allBodies;
-    bodies = Body.getNamesOfBodies(allBodies);
-    earthSpacecraftBodies =  Body.getEarthSCBodies(allBodies);
-    altitudeBodies = Body.getAltitudeBodies(allBodies);
-    illuminationBodies = Body.getIlluminationAngleBodies(allBodies);
-    raDecBodies = Body.getRaDecBodies(allBodies);
-    subSolarBodies = Body.getSubSolarBodies(allBodies);
-    subSCBodies = Body.getRadiatorAvoidanceBodies(allBodies);
-    betaAngleBodies = Body.getBetaAngleBodies(allBodies);
-    orbitParameterBodies = Body.getOrbitParameterBodies(allBodies);
+    String[] bodies = Body.getNamesOfBodies(allBodies);
+    List<String> earthSpacecraftBodies = Body.getEarthSCBodies(allBodies);
+    List<String> altitudeBodies = Body.getAltitudeBodies(allBodies);
+    List<String> illuminationBodies = Body.getIlluminationAngleBodies(allBodies);
+    List<String> raDecBodies = Body.getRaDecBodies(allBodies);
+    List<String> subSolarBodies = Body.getSubSolarBodies(allBodies);
+    List<String> subSCBodies = Body.getRadiatorAvoidanceBodies(allBodies);
+    List<String> betaAngleBodies = Body.getBetaAngleBodies(allBodies);
+    List<String> orbitParameterBodies = Body.getOrbitParameterBodies(allBodies);
 
     // Initialize resources
     bodyPositionAndVelocityWRTSpacecraft = new HashMap<>();
@@ -260,34 +257,47 @@ public class GenericGeometryResources {
     boolean linear = geometryCalculator.useLinearResources;
 
     // Non-arrayed resources
-    upleg_time = resource(discrete(0.0));
-    upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));
-    upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, EARTH);
-    register_p(reg, "upleg_time", upleg_time, upleg_time_p, dvm);
+    //upleg_time = new DoubleResource("upleg_time", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
+    var upleg_time_d = resource(discrete(0.0));
+    var upleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::upleg_duration)));
+    var upleg_time_p = !linear ? null : maybeApproximateAsLinear(upleg_time_u, EARTH);
+    register_p(reg, "upleg_time", upleg_time_d, upleg_time_p, dvm);
+    upleg_time = new DoubleResource(upleg_time_d, upleg_time_u, upleg_time_p);
 
-    downleg_time = resource(discrete(0.0));
-    downleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::downleg_duration)));
-    downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, EARTH);
-    register_p(reg, "downleg_time", downleg_time, downleg_time_p, dvm);
+    //downleg_time = new DoubleResource("downleg_time", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
+    var downleg_time_d = resource(discrete(0.0));
+    var downleg_time_u = resource(Unstructured.timeBased(fit(geometryCalculator::downleg_duration)));
+    var downleg_time_p = !linear ? null : maybeApproximateAsLinear(downleg_time_u, EARTH);
+    register_p(reg, "downleg_time", downleg_time_d, downleg_time_p, dvm);
+    downleg_time = new DoubleResource(downleg_time_d, downleg_time_u, downleg_time_p);
 
-    rtlt = resource(discrete(0.0));
-    rtlt_u = resource(Unstructured.timeBased(fit(t -> {
+//    rtlt = new DoubleResource("downleg_time", EARTH, bodyObjects, linear, false, false, optimizeSampling, fit(t -> {
+//      Double ult = geometryCalculator.upleg_duration(t) * 1e6;
+//      var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;
+//      return (ult + dlt)/1e6;
+//    }), reg);
+    var rtlt_d = resource(discrete(0.0));
+    var rtlt_u = resource(Unstructured.timeBased(fit(t -> {
       Double ult = geometryCalculator.upleg_duration(t) * 1e6;
       var dlt = geometryCalculator.downleg_duration(t.plus(ult.longValue(), Duration.MICROSECONDS)) * 1e6;
       return (ult + dlt)/1e6;
     })));
-    rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u, EARTH);
+    var rtlt_p = !linear ? null : maybeApproximateAsLinear(rtlt_u, EARTH);
+    rtlt = new DoubleResource(rtlt_d, rtlt_u, rtlt_p);
 
     radec_u = resource(Unstructured.timeBased(fit(geometryCalculator::scRADec)));
-    spacecraftDeclination = resource(discrete(0.0));
-    spacecraftDeclination_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getDec());
-    spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, EARTH);
-    register_p(reg, "spacecraftDeclination", spacecraftDeclination, spacecraftDeclination_p, dvm);
+    //spacecraftDeclination = new DoubleResource("spacecraftDeclination", EARTH, bodyObjects, linear, linear, !linear, optimizeSampling, fit(geometryCalculator::upleg_duration), reg);
+    var spacecraftDeclination_d = resource(discrete(0.0));
+    var spacecraftDeclination_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getDec());
+    var spacecraftDeclination_p = maybeApproximateAsLinear(spacecraftDeclination_u, EARTH);
+    register_p(reg, "spacecraftDeclination", spacecraftDeclination_d, spacecraftDeclination_p, dvm);
+    spacecraftDeclination = new DoubleResource(spacecraftDeclination_d, spacecraftDeclination_u, spacecraftDeclination_p);
 
-    spacecraftRightAscension = resource(discrete(0.0));
-    spacecraftRightAscension_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getRA());
-    spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u, EARTH);
-    register_p(reg, "spacecraftRightAscension", spacecraftRightAscension, spacecraftRightAscension_p, dvm);
+    var spacecraftRightAscension_d = resource(discrete(0.0));
+    var spacecraftRightAscension_u = UnstructuredResourceApplicative.map(radec_u, radec -> radec.getRA());
+    var spacecraftRightAscension_p = maybeApproximateAsLinear(spacecraftRightAscension_u, EARTH);
+    register_p(reg, "spacecraftRightAscension", spacecraftRightAscension_d, spacecraftRightAscension_p, dvm);
+    spacecraftRightAscension = new DoubleResource(spacecraftRightAscension_d, spacecraftRightAscension_u, spacecraftRightAscension_p);
 
     EarthSunProbeAngle = resource(discrete(0.0));
     EarthSunProbeAngle_u = resource(Unstructured.timeBased(fit(t -> geometryCalculator.earthSunProbeAngle(t))));
@@ -568,291 +578,291 @@ public class GenericGeometryResources {
 //        }
   }
 
-  public MutableResource<Discrete<Double>> getUpleg_time() {
-    return upleg_time;
+  public MutableResource<Discrete<Double>> upleg_time() {
+    return upleg_time.discrete();
   }
 
-  public Resource<Unstructured<Double>> getUpleg_time_u() {
-    return upleg_time_u;
+  public Resource<Unstructured<Double>> upleg_time_u() {
+    return upleg_time.unstructured();
   }
 
-  public Resource<Linear> getUpleg_time_p() {
-    return upleg_time_p;
+  public Resource<Linear> upleg_time_p() {
+    return upleg_time.linear();
   }
 
-  public MutableResource<Discrete<Double>> getDownleg_time() {
-    return downleg_time;
+  public MutableResource<Discrete<Double>> downleg_time() {
+    return downleg_time.discrete();
   }
 
-  public Resource<Unstructured<Double>> getDownleg_time_u() {
-    return downleg_time_u;
+  public Resource<Unstructured<Double>> downleg_time_u() {
+    return downleg_time.unstructured();
   }
 
-  public Resource<Linear> getDownleg_time_p() {
-    return downleg_time_p;
+  public Resource<Linear> downleg_time_p() {
+    return downleg_time.linear();
   }
 
-  public MutableResource<Discrete<Double>> getRtlt() {
-    return rtlt;
+  public MutableResource<Discrete<Double>> rtlt() {
+    return rtlt.discrete();
   }
 
-  public Resource<Unstructured<Double>> getRtlt_u() {
-    return rtlt_u;
+  public Resource<Unstructured<Double>> rtlt_u() {
+    return rtlt.unstructured();
   }
 
-  public Resource<Linear> getRtlt_p() {
-    return rtlt_p;
+  public Resource<Linear> rtlt_p() {
+    return rtlt.linear();
   }
 
-  public Map<String, Resource<Unstructured<Vector3D[]>>> getBodyPositionAndVelocityWRTSpacecraft_u() {
+  public Map<String, Resource<Unstructured<Vector3D[]>>> bodyPositionAndVelocityWRTSpacecraft_u() {
     return bodyPositionAndVelocityWRTSpacecraft_u;
   }
 
-  public Map<String, Resource<Linear>[][]> getBodyPositionAndVelocityWRTSpacecraft_a() {
+  public Map<String, Resource<Linear>[][]> bodyPositionAndVelocityWRTSpacecraft_a() {
     return bodyPositionAndVelocityWRTSpacecraft_a;
   }
 
-  public Map<String, List<Resource<Linear>>> getBodyPositionAndVelocityWRTSpacecraft() {
+  public Map<String, List<Resource<Linear>>> bodyPositionAndVelocityWRTSpacecraft() {
     return bodyPositionAndVelocityWRTSpacecraft;
   }
 
-  public Map<String, Resource<Unstructured<Vector3D[]>>> getSunPositionAndVelocityWRTBody_u() {
+  public Map<String, Resource<Unstructured<Vector3D[]>>> sunPositionAndVelocityWRTBody_u() {
     return sunPositionAndVelocityWRTBody_u;
   }
 
-  public Map<String, Resource<Linear>[][]> getSunPositionAndVelocityWRTBody_a() {
+  public Map<String, Resource<Linear>[][]> sunPositionAndVelocityWRTBody_a() {
     return sunPositionAndVelocityWRTBody_a;
   }
 
-  public Map<String, List<Resource<Linear>>> getSunPositionAndVelocityWRTBody() {
+  public Map<String, List<Resource<Linear>>> sunPositionAndVelocityWRTBody() {
     return sunPositionAndVelocityWRTBody;
   }
 
-  public Map<String, Resource<Unstructured<Vector3D[]>>> getBodyPositionAndVelocityWRTEarth_u() {
+  public Map<String, Resource<Unstructured<Vector3D[]>>> bodyPositionAndVelocityWRTEarth_u() {
     return bodyPositionAndVelocityWRTEarth_u;
   }
 
-  public Map<String, Resource<Linear>[][]> getBodyPositionAndVelocityWRTEarth_a() {
+  public Map<String, Resource<Linear>[][]> bodyPositionAndVelocityWRTEarth_a() {
     return bodyPositionAndVelocityWRTEarth_a;
   }
 
-  public Map<String, List<Resource<Linear>>> getBodyPositionAndVelocityWRTEarth() {
+  public Map<String, List<Resource<Linear>>> bodyPositionAndVelocityWRTEarth() {
     return bodyPositionAndVelocityWRTEarth;
   }
 
-  public Resource<Unstructured<RADec>> getRadec_u() {
+  public Resource<Unstructured<RADec>> radec_u() {
     return radec_u;
   }
 
-  public MutableResource<Discrete<Double>> getSpacecraftDeclination() {
-    return spacecraftDeclination;
+  public MutableResource<Discrete<Double>> spacecraftDeclination() {
+    return spacecraftDeclination.discrete();
   }
 
-  public Resource<Unstructured<Double>> getSpacecraftDeclination_u() {
-    return spacecraftDeclination_u;
+  public Resource<Unstructured<Double>> spacecraftDeclination_u() {
+    return spacecraftDeclination.unstructured();
   }
 
-  public Resource<Linear> getSpacecraftDeclination_p() {
-    return spacecraftDeclination_p;
+  public Resource<Linear> spacecraftDeclination_p() {
+    return spacecraftDeclination.linear();
   }
 
-  public MutableResource<Discrete<Double>> getSpacecraftRightAscension() {
-    return spacecraftRightAscension;
+  public MutableResource<Discrete<Double>> spacecraftRightAscension() {
+    return spacecraftRightAscension.discrete();
   }
 
-  public Resource<Unstructured<Double>> getSpacecraftRightAscension_u() {
-    return spacecraftRightAscension_u;
+  public Resource<Unstructured<Double>> spacecraftRightAscension_u() {
+    return spacecraftRightAscension.unstructured();
   }
 
-  public Resource<Linear> getSpacecraftRightAscension_p() {
-    return spacecraftRightAscension_p;
+  public Resource<Linear> spacecraftRightAscension_p() {
+    return spacecraftRightAscension.linear();
   }
 
-  public Map<String, MutableResource<Discrete<Vector3D>>> getBODY_POS_ICRF() {
+  public Map<String, MutableResource<Discrete<Vector3D>>> BODY_POS_ICRF() {
     return BODY_POS_ICRF;
   }
 
-  public Map<String, Resource<Unstructured<Vector3D>>> getBODY_POS_ICRF_u() {
+  public Map<String, Resource<Unstructured<Vector3D>>> BODY_POS_ICRF_u() {
     return BODY_POS_ICRF_u;
   }
 
-  public Map<String, Resource<Linear>[]> getBODY_POS_ICRF_a() {
+  public Map<String, Resource<Linear>[]> BODY_POS_ICRF_a() {
     return BODY_POS_ICRF_a;
   }
 
-  public Map<String, MutableResource<Discrete<Vector3D>>> getBODY_VEL_ICRF() {
+  public Map<String, MutableResource<Discrete<Vector3D>>> BODY_VEL_ICRF() {
     return BODY_VEL_ICRF;
   }
 
-  public Map<String, Resource<Unstructured<Vector3D>>> getBODY_VEL_ICRF_u() {
+  public Map<String, Resource<Unstructured<Vector3D>>> BODY_VEL_ICRF_u() {
     return BODY_VEL_ICRF_u;
   }
 
-  public Map<String, Resource<Linear>[]> getBODY_VEL_ICRF_a() {
+  public Map<String, Resource<Linear>[]> BODY_VEL_ICRF_a() {
     return BODY_VEL_ICRF_a;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getSpacecraftBodyRange() {
+  public Map<String, MutableResource<Discrete<Double>>> SpacecraftBodyRange() {
     return SpacecraftBodyRange;
   }
 
-  public Map<String, Resource<Linear>> getSpacecraftBodyRange_p() {
+  public Map<String, Resource<Linear>> SpacecraftBodyRange_p() {
     return SpacecraftBodyRange_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getSpacecraftBodySpeed() {
+  public Map<String, MutableResource<Discrete<Double>>> SpacecraftBodySpeed() {
     return SpacecraftBodySpeed;
   }
 
-  public Map<String, Resource<Linear>> getSpacecraftBodySpeed_p() {
+  public Map<String, Resource<Linear>> SpacecraftBodySpeed_p() {
     return SpacecraftBodySpeed_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getSunSpacecraftBodyAngle() {
+  public Map<String, MutableResource<Discrete<Double>>> SunSpacecraftBodyAngle() {
     return SunSpacecraftBodyAngle;
   }
 
-  public Map<String, Resource<Linear>> getSunSpacecraftBodyAngle_p() {
+  public Map<String, Resource<Linear>> SunSpacecraftBodyAngle_p() {
     return SunSpacecraftBodyAngle_p;
   }
 
-  public Map<String, Resource<Unstructured<Double>>> getSunSpacecraftBodyAngle_u() {
+  public Map<String, Resource<Unstructured<Double>>> SunSpacecraftBodyAngle_u() {
     return SunSpacecraftBodyAngle_u;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getSunBodySpacecraftAngle() {
+  public Map<String, MutableResource<Discrete<Double>>> SunBodySpacecraftAngle() {
     return SunBodySpacecraftAngle;
   }
 
-  public Map<String, Resource<Linear>> getSunBodySpacecraftAngle_p() {
+  public Map<String, Resource<Linear>> SunBodySpacecraftAngle_p() {
     return SunBodySpacecraftAngle_p;
   }
 
-  public Map<String, Resource<Unstructured<Double>>> getSunBodySpacecraftAngle_u() {
+  public Map<String, Resource<Unstructured<Double>>> SunBodySpacecraftAngle_u() {
     return SunBodySpacecraftAngle_u;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getBodyHalfAngleSize() {
+  public Map<String, MutableResource<Discrete<Double>>> BodyHalfAngleSize() {
     return BodyHalfAngleSize;
   }
 
-  public Map<String, Resource<Linear>> getBodyHalfAngleSize_p() {
+  public Map<String, Resource<Linear>> BodyHalfAngleSize_p() {
     return BodyHalfAngleSize_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getBetaAngleByBody() {
+  public Map<String, MutableResource<Discrete<Double>>> BetaAngleByBody() {
     return BetaAngleByBody;
   }
 
-  public Map<String, Resource<Linear>> getBetaAngleByBody_p() {
+  public Map<String, Resource<Linear>> BetaAngleByBody_p() {
     return BetaAngleByBody_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getEarthSpacecraftBodyAngle() {
+  public Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle() {
     return EarthSpacecraftBodyAngle;
   }
 
-  public Map<String, Resource<Linear>> getEarthSpacecraftBodyAngle_p() {
+  public Map<String, Resource<Linear>> EarthSpacecraftBodyAngle_p() {
     return EarthSpacecraftBodyAngle_p;
   }
 
-  public MutableResource<Discrete<Double>> getEarthSunProbeAngle() {
+  public MutableResource<Discrete<Double>> EarthSunProbeAngle() {
     return EarthSunProbeAngle;
   }
 
-  public Resource<Unstructured<Double>> getEarthSunProbeAngle_u() {
+  public Resource<Unstructured<Double>> EarthSunProbeAngle_u() {
     return EarthSunProbeAngle_u;
   }
 
-  public Resource<Linear> getEarthSunProbeAngle_p() {
+  public Resource<Linear> EarthSunProbeAngle_p() {
     return EarthSunProbeAngle_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getSpacecraftAltitude() {
+  public Map<String, MutableResource<Discrete<Double>>> SpacecraftAltitude() {
     return SpacecraftAltitude;
   }
 
-  public Map<String, Resource<Linear>> getSpacecraftAltitude_p() {
+  public Map<String, Resource<Linear>> SpacecraftAltitude_p() {
     return SpacecraftAltitude_p;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> getIlluminationAnglesByBody() {
+  public Map<String, Map<String, MutableResource<Discrete<Double>>>> IlluminationAnglesByBody() {
     return IlluminationAnglesByBody;
   }
 
-  public Map<String, Map<String, Resource<Linear>>> getIlluminationAnglesByBody_p() {
+  public Map<String, Map<String, Resource<Linear>>> IlluminationAnglesByBody_p() {
     return IlluminationAnglesByBody_p;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> getEarthRaDecByBody() {
+  public Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody() {
     return EarthRaDecByBody;
   }
 
-  public Map<String, Map<String, Resource<Linear>>> getEarthRaDecByBody_p() {
+  public Map<String, Map<String, Resource<Linear>>> EarthRaDecByBody_p() {
     return EarthRaDecByBody_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getEarthRaDeltaWithSCByBody() {
+  public Map<String, MutableResource<Discrete<Double>>> EarthRaDeltaWithSCByBody() {
     return EarthRaDeltaWithSCByBody;
   }
 
-  public Map<String, Resource<Linear>> getEarthRaDeltaWithSCByBody_p() {
+  public Map<String, Resource<Linear>> EarthRaDeltaWithSCByBody_p() {
     return EarthRaDeltaWithSCByBody_p;
   }
 
-  public Map<String, MutableResource<Discrete<Vector3D>>> getBodySubSolarPoint() {
+  public Map<String, MutableResource<Discrete<Vector3D>>> BodySubSolarPoint() {
     return BodySubSolarPoint;
   }
 
-  public Map<String, Resource<Linear>[]> getBodySubSolarPoint_p() {
+  public Map<String, Resource<Linear>[]> BodySubSolarPoint_p() {
     return BodySubSolarPoint_p;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> getBodySubSCPoint() {
+  public Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint() {
     return BodySubSCPoint;
   }
 
-  public Map<String, Map<String, Resource<Linear>>> getBodySubSCPoint_p() {
+  public Map<String, Map<String, Resource<Linear>>> BodySubSCPoint_p() {
     return BodySubSCPoint_p;
   }
 
-  public Map<String, MutableResource<Discrete<EclipseTypes>>> getSpacecraftEclipseByBody() {
+  public Map<String, MutableResource<Discrete<EclipseTypes>>> SpacecraftEclipseByBody() {
     return SpacecraftEclipseByBody;
   }
 
-  public MutableResource<Discrete<EclipseTypes>> getAnySpacecraftEclipse() {
+  public MutableResource<Discrete<EclipseTypes>> AnySpacecraftEclipse() {
     return AnySpacecraftEclipse;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Boolean>>>> getSpacecraftOccultationByBodyAndStation() {
+  public Map<String, Map<String, MutableResource<Discrete<Boolean>>>> SpacecraftOccultationByBodyAndStation() {
     return SpacecraftOccultationByBodyAndStation;
   }
 
-  public MutableResource<Discrete<Integer>> getOccultation() {
+  public MutableResource<Discrete<Integer>> Occultation() {
     return Occultation;
   }
 
-  public MutableResource<Discrete<Double>> getFractionOfSunNotInEclipse() {
+  public MutableResource<Discrete<Double>> FractionOfSunNotInEclipse() {
     return FractionOfSunNotInEclipse;
   }
 
-  public MutableResource<Discrete<Integer>> getLitOrDarkSide() {
+  public MutableResource<Discrete<Integer>> LitOrDarkSide() {
     return LitOrDarkSide;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getOrbitInclinationByBody() {
+  public Map<String, MutableResource<Discrete<Double>>> orbitInclinationByBody() {
     return orbitInclinationByBody;
   }
 
-  public Map<String, Resource<Linear>> getOrbitInclinationByBody_p() {
+  public Map<String, Resource<Linear>> orbitInclinationByBody_p() {
     return orbitInclinationByBody_p;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> getOrbitPeriodByBody() {
+  public Map<String, MutableResource<Discrete<Double>>> orbitPeriodByBody() {
     return orbitPeriodByBody;
   }
 
-  public Map<String, Resource<Linear>> getOrbitPeriodByBody_p() {
+  public Map<String, Resource<Linear>> orbitPeriodByBody_p() {
     return orbitPeriodByBody_p;
   }
 

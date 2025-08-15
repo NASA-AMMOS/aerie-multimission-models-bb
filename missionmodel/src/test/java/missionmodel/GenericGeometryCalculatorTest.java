@@ -6,12 +6,10 @@ import gov.nasa.jpl.time.Time;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
 import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException;
 import missionmodel.geometry.resources.GenericGeometryResources;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
-import spice.basic.CSPICE;
 
 import java.time.Instant;
 
@@ -61,11 +59,11 @@ public class GenericGeometryCalculatorTest {
     // to SPICE
     GenericGeometryResources geoRes = this.model.geometryResources;
     try {
-      assertEquals(stateCalculator.getBodyHalfAngleSize(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.getBodyHalfAngleSize().get("MARS")), 0.01);
-      assertEquals(stateCalculator.getEarthSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.getEarthSpacecraftBodyAngle().get("MARS")), 0.01);
-      assertEquals(stateCalculator.getSunBodySpacecraftAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.getSunBodySpacecraftAngle().get("MARS")), 0.01);
-      assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.getSunSpacecraftBodyAngle().get("MARS")), 0.01);
-      assertEquals(stateCalculator.getEarthSunProbeAngle(t, sc_str, "LT+S"), currentValue(geoRes.getEarthSunProbeAngle()), 0.01);
+      assertEquals(stateCalculator.getBodyHalfAngleSize(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.BodyHalfAngleSize().get("MARS")), 0.01);
+      assertEquals(stateCalculator.getEarthSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.EarthSpacecraftBodyAngle().get("MARS")), 0.01);
+      assertEquals(stateCalculator.getSunBodySpacecraftAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle().get("MARS")), 0.01);
+      assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunSpacecraftBodyAngle().get("MARS")), 0.01);
+      assertEquals(stateCalculator.getEarthSunProbeAngle(t, sc_str, "LT+S"), currentValue(geoRes.EarthSunProbeAngle()), 0.01);
     } catch (GeometryInformationNotAvailableException e) {
       System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
     }

@@ -24,13 +24,13 @@ public class SpacecraftExitEclipse {
 
   @ActivityType.EffectModel
   public void run(Mission model){
-    set(model.geometryResources.getSpacecraftEclipseByBody().get(body), EclipseTypes.NONE);
+    set(model.geometryResources.SpacecraftEclipseByBody().get(body), EclipseTypes.NONE);
 
     EclipseTypes worstOverallEclipseType = getWorstEclipseFromAllBodies(model);
-    set(model.geometryResources.getAnySpacecraftEclipse(), worstOverallEclipseType);
+    set(model.geometryResources.AnySpacecraftEclipse(), worstOverallEclipseType);
 
     if(worstOverallEclipseType.equals(EclipseTypes.NONE)){
-      set(model.geometryResources.getFractionOfSunNotInEclipse(), 1.0);
+      set(model.geometryResources.FractionOfSunNotInEclipse(), 1.0);
     }
     delay(Duration.SECOND);
   }

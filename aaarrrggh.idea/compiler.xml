@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-framework-processor/3.3.1/dc25c303db39a577035145b07dc947f054f13da1/merlin-framework-processor-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-sdk/3.3.1/6cb280d02d96b24c5bbddd1fa5f098701c479dbe/merlin-sdk-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/contrib/3.3.1/9c8c21bbc6276d9dd0c6bafffea34bf0a7592969/contrib-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-framework/3.3.1/eaf9fbb7c62bdcf7523ceb75df4c73f230e501f1/merlin-framework-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.13.0/b7263237aa89c1f99b327197c41d0669707a462e/commons-lang3-3.13.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup/javapoet/1.13.0/d6562d385049f35eb50403fa86bb11cce76b866a/javapoet-1.13.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/e4ba98f1d4b3c80ec46392f25e094a6a2e58fcbf/commons-math3-3.6.1.jar" />
+          <entry name="$PROJECT_DIR$/third-party/JNISpice-N0067.jar" />
+        </processorPath>
+        <module name="aerie-bb-models.missionmodel.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.ammos.aerie.procedural/processor/3.3.1/81fa0b5a1b708e4b2cb39cbc27182ef1a116d2df/processor-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.ammos.aerie.procedural/scheduling/3.3.1/20edde534785ace09ae696190e59ea22daba4d45/scheduling-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.ammos.aerie.procedural/timeline/3.3.1/f7df56acdc907e9562258b92e13b716f6069dcba/timeline-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-driver/3.3.1/d0ccb71b255c53d364168be1a354a7d483928466/merlin-driver-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/type-utils/3.3.1/f56ff8284c3e5879a2f1b32d27b75419fcfbcb7e/type-utils-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-sdk/3.3.1/6cb280d02d96b24c5bbddd1fa5f098701c479dbe/merlin-sdk-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/contrib/3.3.1/9c8c21bbc6276d9dd0c6bafffea34bf0a7592969/contrib-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/merlin-framework/3.3.1/eaf9fbb7c62bdcf7523ceb75df4c73f230e501f1/merlin-framework-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/gov.nasa.jpl.aerie/parsing-utilities/3.3.1/2716e1c304eecaf285626ec57a8f6fbe255f4156/parsing-utilities-3.3.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.13.0/b7263237aa89c1f99b327197c41d0669707a462e/commons-lang3-3.13.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.squareup/javapoet/1.13.0/d6562d385049f35eb50403fa86bb11cce76b866a/javapoet-1.13.0.jar" />
+          <entry name="$PROJECT_DIR$/third-party/JNISpice-N0067.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/e4ba98f1d4b3c80ec46392f25e094a6a2e58fcbf/commons-math3-3.6.1.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.0.20/7388d355f7cceb002cd387ccb7ab3850e4e0a07f/kotlin-stdlib-2.0.20.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.12/c24946d46824bd528054bface3231d2ecb7e95e8/fastutil-8.5.12.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-simple/2.0.7/bfa4d4dad645a5b11c022ae0043bac2df6cf16b5/slf4j-simple-2.0.7.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.1.4/943f240a509d3c70b448a55c6735591ecbd37c88/javax.json-1.1.4.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.7/41eb7184ea9d556f23e18b5cb99cad1f8581fc00/slf4j-api-2.0.7.jar" />
+        </processorPath>
+        <module name="aerie-bb-models.scheduling.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="21" />
+  </component>
+</project>
