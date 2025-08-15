@@ -99,13 +99,9 @@ public class GenericGeometryResources {
   private final Map<String, DoubleResource> SunSpacecraftBodyAngle;
   private final Map<String, DoubleResource> SunBodySpacecraftAngle;
   private final Map<String, MutableResource<Discrete<Double>>> BodyHalfAngleSize;
-  private final Map<String, Resource<Linear>> BodyHalfAngleSize_p;
-
   private final Map<String, MutableResource<Discrete<Double>>> BetaAngleByBody;
-  private final Map<String, Resource<Linear>> BetaAngleByBody_p;
 
   private final Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle;
-  private final Map<String, Resource<Linear>> EarthSpacecraftBodyAngle_p;
 
   private final DoubleResource EarthSunProbeAngle;
 
@@ -113,18 +109,12 @@ public class GenericGeometryResources {
   private final Map<String, Resource<Linear>> SpacecraftAltitude_p;
 
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> IlluminationAnglesByBody;
-  private final Map<String, Map<String, Resource<Linear>>> IlluminationAnglesByBody_p;
-
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody;
-  private final Map<String, Map<String, Resource<Linear>>> EarthRaDecByBody_p;
 
   private final Map<String, MutableResource<Discrete<Double>>> EarthRaDeltaWithSCByBody;
-  private final Map<String, Resource<Linear>> EarthRaDeltaWithSCByBody_p;
 
   private final Map<String, MutableResource<Discrete<Vector3D>>> BodySubSolarPoint;
-  private final Map<String, Resource<Linear>[]> BodySubSolarPoint_p;
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint;
-  private final Map<String, Map<String, Resource<Linear>>> BodySubSCPoint_p;
 
   private final Map<String, MutableResource<Discrete<EclipseTypes>>> SpacecraftEclipseByBody;
   private final MutableResource<Discrete<EclipseTypes>> AnySpacecraftEclipse;
@@ -135,9 +125,7 @@ public class GenericGeometryResources {
   private final MutableResource<Discrete<Integer>> LitOrDarkSide;
 
   private final Map<String, MutableResource<Discrete<Double>>> orbitInclinationByBody;
-  private final Map<String, Resource<Linear>> orbitInclinationByBody_p;
   private final Map<String, MutableResource<Discrete<Double>>> orbitPeriodByBody;
-  private final Map<String, Resource<Linear>> orbitPeriodByBody_p;
 
 
 
@@ -199,29 +187,19 @@ public class GenericGeometryResources {
     SunSpacecraftBodyAngle = new HashMap<>();
     SunBodySpacecraftAngle = new HashMap<>();
     BodyHalfAngleSize = new HashMap<>();
-    BodyHalfAngleSize_p = new HashMap<>();
     IlluminationAnglesByBody = new HashMap<>();
-    IlluminationAnglesByBody_p = new HashMap<>();
     EarthRaDecByBody = new HashMap<>();
-    EarthRaDecByBody_p = new HashMap<>();
     BodySubSCPoint = new HashMap<>();
-    BodySubSCPoint_p = new HashMap<>();
     SpacecraftOccultationByBodyAndStation = new HashMap<>();
     SpacecraftEclipseByBody = new HashMap<>();
     BetaAngleByBody = new HashMap<>();
-    BetaAngleByBody_p = new HashMap<>();
     EarthSpacecraftBodyAngle = new HashMap<>();
-    EarthSpacecraftBodyAngle_p = new HashMap<>();
     SpacecraftAltitude = new HashMap<>();
     SpacecraftAltitude_p = new HashMap<>();
     EarthRaDeltaWithSCByBody = new HashMap<>();
-    EarthRaDeltaWithSCByBody_p = new HashMap<>();
     BodySubSolarPoint = new HashMap<>();
-    BodySubSolarPoint_p = new HashMap<>();
     orbitInclinationByBody = new HashMap<>();
-    orbitInclinationByBody_p = new HashMap<>();
     orbitPeriodByBody = new HashMap<>();
-    orbitPeriodByBody_p = new HashMap<>();
 
     Apoapsis = new HashMap<>();
     //Apoapsis_p = new HashMap<>();
@@ -743,24 +721,12 @@ public class GenericGeometryResources {
     return BodyHalfAngleSize;
   }
 
-  public Map<String, Resource<Linear>> BodyHalfAngleSize_p() {
-    return BodyHalfAngleSize_p;
-  }
-
   public Map<String, MutableResource<Discrete<Double>>> BetaAngleByBody() {
     return BetaAngleByBody;
   }
 
-  public Map<String, Resource<Linear>> BetaAngleByBody_p() {
-    return BetaAngleByBody_p;
-  }
-
   public Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle() {
     return EarthSpacecraftBodyAngle;
-  }
-
-  public Map<String, Resource<Linear>> EarthSpacecraftBodyAngle_p() {
-    return EarthSpacecraftBodyAngle_p;
   }
 
   public MutableResource<Discrete<Double>> EarthSunProbeAngle() {
@@ -787,40 +753,20 @@ public class GenericGeometryResources {
     return IlluminationAnglesByBody;
   }
 
-  public Map<String, Map<String, Resource<Linear>>> IlluminationAnglesByBody_p() {
-    return IlluminationAnglesByBody_p;
-  }
-
   public Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody() {
     return EarthRaDecByBody;
-  }
-
-  public Map<String, Map<String, Resource<Linear>>> EarthRaDecByBody_p() {
-    return EarthRaDecByBody_p;
   }
 
   public Map<String, MutableResource<Discrete<Double>>> EarthRaDeltaWithSCByBody() {
     return EarthRaDeltaWithSCByBody;
   }
 
-  public Map<String, Resource<Linear>> EarthRaDeltaWithSCByBody_p() {
-    return EarthRaDeltaWithSCByBody_p;
-  }
-
   public Map<String, MutableResource<Discrete<Vector3D>>> BodySubSolarPoint() {
     return BodySubSolarPoint;
   }
 
-  public Map<String, Resource<Linear>[]> BodySubSolarPoint_p() {
-    return BodySubSolarPoint_p;
-  }
-
   public Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint() {
     return BodySubSCPoint;
-  }
-
-  public Map<String, Map<String, Resource<Linear>>> BodySubSCPoint_p() {
-    return BodySubSCPoint_p;
   }
 
   public Map<String, MutableResource<Discrete<EclipseTypes>>> SpacecraftEclipseByBody() {
@@ -851,16 +797,8 @@ public class GenericGeometryResources {
     return orbitInclinationByBody;
   }
 
-  public Map<String, Resource<Linear>> orbitInclinationByBody_p() {
-    return orbitInclinationByBody_p;
-  }
-
   public Map<String, MutableResource<Discrete<Double>>> orbitPeriodByBody() {
     return orbitPeriodByBody;
-  }
-
-  public Map<String, Resource<Linear>> orbitPeriodByBody_p() {
-    return orbitPeriodByBody_p;
   }
 
 }
