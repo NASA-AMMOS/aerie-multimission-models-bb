@@ -119,9 +119,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     // calculate some quantities for every body
     set(geomRes.BODY_POS_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
     set(geomRes.BODY_VEL_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
-    set(geomRes.SpacecraftBodyRange().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
-    set(geomRes.SpacecraftBodySpeed().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
-    set(geomRes.BodyHalfAngleSize().get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
+    set(geomRes.SpacecraftBodyRange().get(body.getName()).discrete(), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
+    set(geomRes.SpacecraftBodySpeed().get(body.getName()).discrete(), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
+    set(geomRes.BodyHalfAngleSize().get(body.getName()).discrete(), bodyHalfAngleSize(bodyPositionAndVelocityWRTSpacecraft, body));
 
     // this section is also multi-mission; the Sun can't have an angle from itself
     if (!body.getName().equals(SUN)) {
@@ -169,8 +169,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
     if(body.doCalculateBetaAngle() && !body.getName().equals(SUN)){
       // beta angle is the angle between the vector normal to the orbital plane (sc position x velocity) and the
       // vector from the body to the sun
-      Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
-      set(geomRes.BetaAngleByBody().get(body.getName()), (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate())*(180.0/Math.PI))-90);
+      set(geomRes.BetaAngleByBody().get(body.getName()).discrete(), betaAngleByBody(bodyPositionAndVelocityWRTSpacecraft, sunPositionAndVelocityWRTBody));
     }
 
     if(body.doCalculateSubSolarInformation() && !body.getName().equals(SUN)){
@@ -196,8 +195,9 @@ public class GenericGeometryCalculator implements GeometryCalculator {
           set(geomRes.BodySubSCPoint().get(body.getName()).get("longitude"), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
           set(geomRes.BodySubSCPoint().get(body.getName()).get("radius"), latLonSurfaceData.getRadius());
           if(body.doCalculateAltitude()){
-            set(geomRes.SpacecraftAltitude().get(body.getName()),
-              bodyPositionAndVelocityWRTSpacecraft[0].getNorm()-latLonSurfaceData.getRadius());
+            set(geomRes.SpacecraftAltitude().get(body.getName()).discrete(),
+                spacecraftAltitude(bodyPositionAndVelocityWRTSpacecraft, sp_sc));
+                //bodyPositionAndVelocityWRTSpacecraft[0].getNorm()-latLonSurfaceData.getRadius());
           }
 
           if(body.doCalculateLST()){
@@ -295,6 +295,97 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
   public double spacecraftRightAscension(Duration t) {
     return spacecraftRightAscension(d2t(t));
+  }
+
+  public double spacecraftAltitude(Vector3D[] bodyPosVel, SubPointInformation sp_sc) {
+    try {
+      LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
+      return bodyPosVel[0].getNorm() - latLonSurfaceData.getRadius();
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double spacecraftAltitude(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPosVel = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      if (bodyPosVel.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateAltitude()) {
+          SubPointInformation sp_sc = calc.getSubPointInformation(t, Integer.toString(sc_id), body.getName(), abcorr, body.useDSK());
+          if (sp_sc.isFound()) {
+            return spacecraftAltitude(bodyPosVel, sp_sc);
+          }
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double spacecraftAltitude(Duration t, String bodyName) {
+    return spacecraftAltitude(d2t(t), bodyName);
+  }
+
+  public double betaAngleByBody(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      Vector3D[] sunPositionAndVelocityWRTBody = sunPositionAndVelocityWRTBody(t, bodyName);
+      if (bodyPositionAndVelocityWRTSpacecraft.length > 0 && sunPositionAndVelocityWRTBody.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateBetaAngle()) {
+          return betaAngleByBody(bodyPositionAndVelocityWRTSpacecraft, sunPositionAndVelocityWRTBody);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double betaAngleByBody(Duration t, String bodyName) {
+    return betaAngleByBody(d2t(t), bodyName);
+  }
+
+  public double betaAngleByBody(Vector3D[] bodyPositionAndVelocityWRTSpacecraft, Vector3D[] sunPositionAndVelocityWRTBody) {
+    try {
+      // vector from the body to the sun
+      Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
+      return (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate()) * (180.0 / Math.PI)) - 90;
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double bodyHalfAngleSize(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      if (bodyPositionAndVelocityWRTSpacecraft.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null) {
+          return bodyHalfAngleSize(bodyPositionAndVelocityWRTSpacecraft, body);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double bodyHalfAngleSize(Duration t, String bodyName) {
+    return bodyHalfAngleSize(d2t(t), bodyName);
+  }
+
+  public double bodyHalfAngleSize(Vector3D[] bodyPositionAndVelocityWRTSpacecraft, Body body) {
+    try {
+      return Math.asin(body.getAverageEquitorialRadius() / bodyPositionAndVelocityWRTSpacecraft[0].getNorm()) * (180.0 / Math.PI);
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
   }
 
   Vector3D[] earthPositionAndVelocityWRTSC(Time t) {

@@ -59,7 +59,7 @@ public class GenericGeometryCalculatorTest {
     // to SPICE
     GenericGeometryResources geoRes = this.model.geometryResources;
     try {
-      assertEquals(stateCalculator.getBodyHalfAngleSize(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.BodyHalfAngleSize().get("MARS")), 0.01);
+      assertEquals(stateCalculator.getBodyHalfAngleSize(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.BodyHalfAngleSize().get("MARS").discrete()), 0.01);
       assertEquals(stateCalculator.getEarthSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.EarthSpacecraftBodyAngle().get("MARS")), 0.01);
       assertEquals(stateCalculator.getSunBodySpacecraftAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunBodySpacecraftAngle().get("MARS")), 0.01);
       assertEquals(stateCalculator.getSunSpacecraftBodyAngle(t, sc_str, "MARS", "LT+S"), currentValue(geoRes.SunSpacecraftBodyAngle().get("MARS")), 0.01);

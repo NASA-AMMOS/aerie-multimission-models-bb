@@ -83,18 +83,18 @@ public class GenericGeometryResources {
   //private final Map<String, DoubleResource> BODY_POS_ICRF;
   private final Map<String, MutableResource<Discrete<Vector3D>>> BODY_POS_ICRF;
   private final Map<String, MutableResource<Discrete<Vector3D>>> BODY_VEL_ICRF;
-  private final Map<String, MutableResource<Discrete<Double>>> SpacecraftBodyRange;
-  private final Map<String, MutableResource<Discrete<Double>>> SpacecraftBodySpeed;
+  private final Map<String, DoubleResource> SpacecraftBodyRange;
+  private final Map<String, DoubleResource> SpacecraftBodySpeed;
   private final Map<String, DoubleResource> SunSpacecraftBodyAngle;
   private final Map<String, DoubleResource> SunBodySpacecraftAngle;
-  private final Map<String, MutableResource<Discrete<Double>>> BodyHalfAngleSize;
-  private final Map<String, MutableResource<Discrete<Double>>> BetaAngleByBody;
+  private final Map<String, DoubleResource> BodyHalfAngleSize;
+  private final Map<String, DoubleResource> BetaAngleByBody;
 
   private final Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle;
 
   private final DoubleResource EarthSunProbeAngle;
 
-  private final Map<String, MutableResource<Discrete<Double>>> SpacecraftAltitude;
+  private final Map<String, DoubleResource> SpacecraftAltitude;
 
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> IlluminationAnglesByBody;
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody;
@@ -169,9 +169,7 @@ public class GenericGeometryResources {
     Map<String, Resource<Linear>[]> BODY_VEL_ICRF_a = new HashMap<>();
     Map<String, Resource<Unstructured<Vector3D>>> BODY_VEL_ICRF_u = new HashMap<>();
     SpacecraftBodyRange = new HashMap<>();
-    Map<String, Resource<Linear>> spacecraftBodyRange_p = new HashMap<>();
     SpacecraftBodySpeed = new HashMap<>();
-    Map<String, Resource<Linear>> spacecraftBodySpeed_p = new HashMap<>();
     SunSpacecraftBodyAngle = new HashMap<>();
     SunBodySpacecraftAngle = new HashMap<>();
     BodyHalfAngleSize = new HashMap<>();
@@ -183,7 +181,6 @@ public class GenericGeometryResources {
     BetaAngleByBody = new HashMap<>();
     EarthSpacecraftBodyAngle = new HashMap<>();
     SpacecraftAltitude = new HashMap<>();
-    Map<String, Resource<Linear>> spacecraftAltitude_p = new HashMap<>();
     EarthRaDeltaWithSCByBody = new HashMap<>();
     BodySubSolarPoint = new HashMap<>();
     orbitInclinationByBody = new HashMap<>();
@@ -266,15 +263,18 @@ public class GenericGeometryResources {
       BODY_VEL_ICRF_u.put(body, UnstructuredResourceApplicative.map(bodyPositionAndVelocityWRTSpacecraft_u.get(body), u -> u[1]));
       registerUV(reg, "BODY_VEL_ICRF_" + body, BODY_VEL_ICRF.get(body), BODY_VEL_ICRF_u.get(body), body);
 
-      SpacecraftBodyRange.put(body, resource(discrete(0.0)));
-      spacecraftBodyRange_p.put(body, BODY_POS_ICRF_a.get(body)[3]);
-      register_p(reg, "SpacecraftBodyRange_" + body,
-        SpacecraftBodyRange.get(body), spacecraftBodyRange_p.get(body), withUnit("km", dvm));
 
-      SpacecraftBodySpeed.put(body, resource(discrete(0.0)));
-      spacecraftBodySpeed_p.put(body, BODY_VEL_ICRF_a.get(body)[3]);
+      var spacecraftBodyRange_d = resource(discrete(0.0));
+      Resource<Linear> spacecraftBodyRange_p = BODY_POS_ICRF_a.get(body)[3];
+      SpacecraftBodyRange.put(body, new DoubleResource(spacecraftBodyRange_d, null, spacecraftBodyRange_p));
+      register_p(reg, "SpacecraftBodyRange_" + body,
+        spacecraftBodyRange_d, spacecraftBodyRange_p, withUnit("km", dvm));
+
+      var spacecraftBodySpeed_d = resource(discrete(0.0));
+      Resource<Linear> spacecraftBodySpeed_p = BODY_VEL_ICRF_a.get(body)[3];
+      SpacecraftBodySpeed.put(body, new DoubleResource(spacecraftBodySpeed_d, null, spacecraftBodySpeed_p));
       register_p(reg, "SpacecraftBodySpeed_" + body,
-        SpacecraftBodySpeed.get(body), spacecraftBodySpeed_p.get(body), withUnit("km/s", dvm));
+        spacecraftBodySpeed_d, spacecraftBodySpeed_p, withUnit("km/s", dvm));
 
       var sunSpacecraftBodyAngle_d = resource(discrete(0.0));
       var sunSpacecraftBodyAngle_u = resource(Unstructured.timeBased(t -> geometryCalculator.sunSpacecraftBodyAngle(t, body)));
@@ -288,12 +288,18 @@ public class GenericGeometryResources {
       SunBodySpacecraftAngle.put(body, new DoubleResource(sunBodySpacecraftAngle_d, sunBodySpacecraftAngle_u, sunBodySpacecraftAngle_p));
       register_p(reg, "SunBodySpacecraftAngle_" + body, sunBodySpacecraftAngle_d, sunBodySpacecraftAngle_p, withUnit("deg", dvm));
 
-      BodyHalfAngleSize.put(body, resource(discrete(0.0)));
-      if (reg != null) reg.discrete("BodyHalfAngleSize_" + body, BodyHalfAngleSize.get(body), withUnit("deg", dvm));
+      var bodyHalfAngleSize_d = resource(discrete(0.0));
+      var bodyHalfAngleSize_u = resource(Unstructured.timeBased(t -> geometryCalculator.bodyHalfAngleSize(t, body)));
+      var bodyHalfAngleSize_p = maybeApproximateAsLinear(bodyHalfAngleSize_u, body);
+      BodyHalfAngleSize.put(body, new DoubleResource(bodyHalfAngleSize_d, bodyHalfAngleSize_u, bodyHalfAngleSize_p));
+      register_p(reg, "BodyHalfAngleSize_" + body, bodyHalfAngleSize_d, bodyHalfAngleSize_p, withUnit("deg", dvm));
 
       if (betaAngleBodies.contains(body)) {
-        BetaAngleByBody.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("BetaAngle_" + body, BetaAngleByBody.get(body), withUnit("deg", dvm));
+        var betaAngleByBody_d = resource(discrete(0.0));
+        var betaAngleByBody_u = resource(Unstructured.timeBased(t -> geometryCalculator.betaAngleByBody(t, body)));
+        var betaAngleByBody_p = maybeApproximateAsLinear(betaAngleByBody_u, body);
+        BetaAngleByBody.put(body, new DoubleResource(betaAngleByBody_d, betaAngleByBody_u, betaAngleByBody_p));
+        register_p(reg, "BetaAngle_" + body, betaAngleByBody_d, betaAngleByBody_p, withUnit("deg", dvm));
       }
 
       if (earthSpacecraftBodies.contains(body)) {
@@ -302,8 +308,11 @@ public class GenericGeometryResources {
       }
 
       if (altitudeBodies.contains(body)) {
-        SpacecraftAltitude.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("SpacecraftAltitude_" + body, SpacecraftAltitude.get(body), withUnit("km", dvm));
+        var spacecraftAltitude_d = resource(discrete(0.0));
+        var spacecraftAltitude_u = resource(Unstructured.timeBased(t -> geometryCalculator.spacecraftAltitude(t, body)));
+        var spacecraftAltitude_p = maybeApproximateAsLinear(spacecraftAltitude_u, body);
+        SpacecraftAltitude.put(body, new DoubleResource(spacecraftAltitude_d, spacecraftAltitude_u, spacecraftAltitude_p));
+        register_p(reg, "SpacecraftAltitude_" + body, spacecraftAltitude_d, spacecraftAltitude_p, withUnit("km", dvm));
       }
 
       if (illuminationBodies.contains(body)) {
@@ -384,7 +393,7 @@ public class GenericGeometryResources {
     return t -> f.apply(Duration.max(spiceStart, t));
   }
 
-  private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>> resource, String body) {
+private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>> resource, String body) {
     if (!geometryCalculator.useLinearResources) {
       return assumeLinear(constant(0.0)); // dummy resource
     }
@@ -523,11 +532,11 @@ public class GenericGeometryResources {
     return BODY_VEL_ICRF;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> SpacecraftBodyRange() {
+  public Map<String, DoubleResource> SpacecraftBodyRange() {
     return SpacecraftBodyRange;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> SpacecraftBodySpeed() {
+  public Map<String, DoubleResource> SpacecraftBodySpeed() {
     return SpacecraftBodySpeed;
   }
 
@@ -547,11 +556,11 @@ public class GenericGeometryResources {
     return result;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> BodyHalfAngleSize() {
+  public Map<String, DoubleResource> BodyHalfAngleSize() {
     return BodyHalfAngleSize;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> BetaAngleByBody() {
+  public Map<String, DoubleResource> BetaAngleByBody() {
     return BetaAngleByBody;
   }
 
@@ -563,7 +572,7 @@ public class GenericGeometryResources {
     return EarthSunProbeAngle.discrete();
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> SpacecraftAltitude() {
+  public Map<String, DoubleResource> SpacecraftAltitude() {
     return SpacecraftAltitude;
   }
 
