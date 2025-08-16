@@ -90,16 +90,16 @@ public class GenericGeometryResources {
   private final Map<String, DoubleResource> BodyHalfAngleSize;
   private final Map<String, DoubleResource> BetaAngleByBody;
 
-  private final Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle;
+  private final Map<String, DoubleResource> EarthSpacecraftBodyAngle;
 
   private final DoubleResource EarthSunProbeAngle;
 
   private final Map<String, DoubleResource> SpacecraftAltitude;
 
-  private final Map<String, Map<String, MutableResource<Discrete<Double>>>> IlluminationAnglesByBody;
-  private final Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody;
+  private final Map<String, Map<String, DoubleResource>> IlluminationAnglesByBody;
+  private final Map<String, Map<String, DoubleResource>> EarthRaDecByBody;
 
-  private final Map<String, MutableResource<Discrete<Double>>> EarthRaDeltaWithSCByBody;
+  private final Map<String, DoubleResource> EarthRaDeltaWithSCByBody;
 
   private final Map<String, MutableResource<Discrete<Vector3D>>> BodySubSolarPoint;
   private final Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint;
@@ -112,8 +112,8 @@ public class GenericGeometryResources {
   private final MutableResource<Discrete<Double>> FractionOfSunNotInEclipse;
   private final MutableResource<Discrete<Integer>> LitOrDarkSide;
 
-  private final Map<String, MutableResource<Discrete<Double>>> orbitInclinationByBody;
-  private final Map<String, MutableResource<Discrete<Double>>> orbitPeriodByBody;
+  private final Map<String, DoubleResource> orbitInclinationByBody;
+  private final Map<String, DoubleResource> orbitPeriodByBody;
 
 
 
@@ -303,8 +303,11 @@ public class GenericGeometryResources {
       }
 
       if (earthSpacecraftBodies.contains(body)) {
-        EarthSpacecraftBodyAngle.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("EarthSpacecraftAngle_" + body, EarthSpacecraftBodyAngle.get(body), withUnit("deg", dvm));
+        var earthSpacecraftBodyAngle_d = resource(discrete(0.0));
+        var earthSpacecraftBodyAngle_u = resource(Unstructured.timeBased(t -> geometryCalculator.earthSpacecraftBodyAngle(t, body)));
+        var earthSpacecraftBodyAngle_p = maybeApproximateAsLinear(earthSpacecraftBodyAngle_u, body);
+        EarthSpacecraftBodyAngle.put(body, new DoubleResource(earthSpacecraftBodyAngle_d, earthSpacecraftBodyAngle_u, earthSpacecraftBodyAngle_p));
+        register_p(reg, "EarthSpacecraftAngle_" + body, earthSpacecraftBodyAngle_d, earthSpacecraftBodyAngle_p, withUnit("deg", dvm));
       }
 
       if (altitudeBodies.contains(body)) {
@@ -316,25 +319,34 @@ public class GenericGeometryResources {
       }
 
       if (illuminationBodies.contains(body)) {
-        Map<String, MutableResource<Discrete<Double>>> illumAnglesMap = new HashMap<>();
+        Map<String, DoubleResource> illumAnglesMap = new HashMap<>();
         for (String angle : illumAngles) {
-          illumAnglesMap.put(angle, resource(discrete(0.0)));
-          if (reg != null) reg.discrete("IlluminationAnglesByBody_" + body + "_" + angle,
-            illumAnglesMap.get(angle), withUnit("deg", dvm));
+          var illumAngle_d = resource(discrete(0.0));
+          var illumAngle_u = resource(Unstructured.timeBased(t -> geometryCalculator.illuminationAngle(t, body, angle)));
+          var illumAngle_p = maybeApproximateAsLinear(illumAngle_u, body);
+          illumAnglesMap.put(angle, new DoubleResource(illumAngle_d, illumAngle_u, illumAngle_p));
+          register_p(reg, "IlluminationAnglesByBody_" + body + "_" + angle,
+            illumAngle_d, illumAngle_p, withUnit("deg", dvm));
         }
         IlluminationAnglesByBody.put(body, illumAnglesMap);
       }
 
       if (raDecBodies.contains(body)) {
-        Map<String, MutableResource<Discrete<Double>>> EarthRaDecMap = new HashMap<>();
+        Map<String, DoubleResource> EarthRaDecMap = new HashMap<>();
         for (String angle : raDecIndices) {
-          EarthRaDecMap.put(angle, resource(discrete(0.0)));
-          if (reg != null) reg.discrete("EarthRaDecByBody_" + body + "_" + angle,
-            EarthRaDecMap.get(angle), withUnit("deg", dvm));
+          var earthRaDecAngle_d = resource(discrete(0.0));
+          var earthRaDecAngle_u = resource(Unstructured.timeBased(t -> geometryCalculator.earthRaDecAngle(t, body, angle)));
+          var earthRaDecAngle_p = maybeApproximateAsLinear(earthRaDecAngle_u, body);
+          EarthRaDecMap.put(angle, new DoubleResource(earthRaDecAngle_d, earthRaDecAngle_u, earthRaDecAngle_p));
+          register_p(reg, "EarthRaDecByBody_" + body + "_" + angle,
+            earthRaDecAngle_d, earthRaDecAngle_p, withUnit("deg", dvm));
         }
         EarthRaDecByBody.put(body, EarthRaDecMap);
-        EarthRaDeltaWithSCByBody.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("EarthRaDeltaWithSCByBody_" + body, EarthRaDeltaWithSCByBody.get(body), withUnit("deg", dvm));
+        var earthRaDeltaWithSCByBody_d = resource(discrete(0.0));
+        var earthRaDeltaWithSCByBody_u = resource(Unstructured.timeBased(t -> geometryCalculator.earthRaDeltaWithSCByBody(t, body)));
+        var earthRaDeltaWithSCByBody_p = maybeApproximateAsLinear(earthRaDeltaWithSCByBody_u, body);
+        EarthRaDeltaWithSCByBody.put(body, new DoubleResource(earthRaDeltaWithSCByBody_d, earthRaDeltaWithSCByBody_u, earthRaDeltaWithSCByBody_p));
+        register_p(reg, "EarthRaDeltaWithSCByBody_" + body, earthRaDeltaWithSCByBody_d, earthRaDeltaWithSCByBody_p, withUnit("deg", dvm));
       }
 
       if (subSolarBodies.contains(body)) {
@@ -365,13 +377,19 @@ public class GenericGeometryResources {
       SpacecraftOccultationByBodyAndStation.put(body, occultationStationMap);
 
       if (orbitParameterBodies.contains(body)) {
-        orbitInclinationByBody.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("orbitInclinationByBody_" + body,
-          orbitInclinationByBody.get(body), withUnit("deg", dvm));
+        var orbitInclinationByBody_d = resource(discrete(0.0));
+        var orbitInclinationByBody_u = resource(Unstructured.timeBased(t -> geometryCalculator.orbitInclinationByBody(t, body)));
+        var orbitInclinationByBody_p = maybeApproximateAsLinear(orbitInclinationByBody_u, body);
+        orbitInclinationByBody.put(body, new DoubleResource(orbitInclinationByBody_d, orbitInclinationByBody_u, orbitInclinationByBody_p));
+        register_p(reg, "orbitInclinationByBody_" + body,
+          orbitInclinationByBody_d, orbitInclinationByBody_p, withUnit("deg", dvm));
 
-        orbitPeriodByBody.put(body, resource(discrete(0.0)));
-        if (reg != null) reg.discrete("orbitPeriodByBody_" + body,
-          orbitPeriodByBody.get(body), withUnit("s", dvm));
+        var orbitPeriodByBody_d = resource(discrete(0.0));
+        var orbitPeriodByBody_u = resource(Unstructured.timeBased(t -> geometryCalculator.orbitPeriodByBody(t, body)));
+        var orbitPeriodByBody_p = maybeApproximateAsLinear(orbitPeriodByBody_u, body);
+        orbitPeriodByBody.put(body, new DoubleResource(orbitPeriodByBody_d, orbitPeriodByBody_u, orbitPeriodByBody_p));
+        register_p(reg, "orbitPeriodByBody_" + body,
+          orbitPeriodByBody_d, orbitPeriodByBody_p, withUnit("s", dvm));
       }
 
       Periapsis.put(body, resource(discrete(false)));
@@ -564,7 +582,7 @@ private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>>
     return BetaAngleByBody;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> EarthSpacecraftBodyAngle() {
+  public Map<String, DoubleResource> EarthSpacecraftBodyAngle() {
     return EarthSpacecraftBodyAngle;
   }
 
@@ -576,15 +594,15 @@ private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>>
     return SpacecraftAltitude;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> IlluminationAnglesByBody() {
+  public Map<String, Map<String, DoubleResource>> IlluminationAnglesByBody() {
     return IlluminationAnglesByBody;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> EarthRaDecByBody() {
+  public Map<String, Map<String, DoubleResource>> EarthRaDecByBody() {
     return EarthRaDecByBody;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> EarthRaDeltaWithSCByBody() {
+  public Map<String, DoubleResource> EarthRaDeltaWithSCByBody() {
     return EarthRaDeltaWithSCByBody;
   }
 
@@ -620,11 +638,11 @@ private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>>
     return LitOrDarkSide;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> orbitInclinationByBody() {
+  public Map<String, DoubleResource> orbitInclinationByBody() {
     return orbitInclinationByBody;
   }
 
-  public Map<String, MutableResource<Discrete<Double>>> orbitPeriodByBody() {
+  public Map<String, DoubleResource> orbitPeriodByBody() {
     return orbitPeriodByBody;
   }
 
