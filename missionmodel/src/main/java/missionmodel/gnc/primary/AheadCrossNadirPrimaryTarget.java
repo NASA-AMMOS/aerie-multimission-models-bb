@@ -87,7 +87,7 @@ public class AheadCrossNadirPrimaryTarget implements Target {
         try {
             CSPICE.spkezr(obsBody, et.toET(), relativeFrame, "LT+S", centerBody, state, new double[1]);
         } catch (SpiceErrorException e) {
-            e.printStackTrace();
+            System.err.println("SpiceErrorException: " + e.getMessage());
         }
         Vector3D nadir = new Vector3D(state[0],state[1],state[2]).normalize().scalarMultiply(-1);
         Vector3D oppositeOrbitMomentum = new Vector3D(state[0], state[1], state[2]).crossProduct(new Vector3D(state[3], state[4], state[5])).normalize().scalarMultiply(-1);

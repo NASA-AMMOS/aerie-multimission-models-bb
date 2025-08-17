@@ -16,6 +16,11 @@ public class JPLTimeConvertUtility {
     return Time.fromTimezone(ZonedDateTime.ofInstant(time, ZoneId.of("UTC")));
   }
 
+  public static double spiceEtFromUtc( Instant time ) {
+    Time t = jplTimeFromUTCInstant(time);
+    return t.toET();
+  }
+
   public static Duration getDuration( gov.nasa.jpl.time.Duration jplTimeDur ) {
     return Duration.duration(jplTimeDur.getMicroseconds(), Duration.MICROSECONDS);
   }

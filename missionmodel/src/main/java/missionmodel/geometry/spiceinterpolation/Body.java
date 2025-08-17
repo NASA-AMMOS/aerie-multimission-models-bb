@@ -4,6 +4,7 @@ import spice.basic.CSPICE;
 import spice.basic.SpiceErrorException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,15 +27,16 @@ public class Body {
   private boolean calculateBetaAngle;
   private boolean calculateOrbitParameters;
   private boolean useDSK;
+  private List<CalculationPeriod> calculationPeriods;
 
   public Body(String name, int NAIFID, String NAIFBodyFrame, Double albedo){
-    this(name, NAIFID, NAIFBodyFrame, albedo, false, false, false, false, false, false, false, false, false, false);
+    this(name, NAIFID, NAIFBodyFrame, albedo, false, false, false, false, false, false, false, false, false, false, Collections.emptyList());
   }
 
   public Body(String name, int NAIFID, String NAIFBodyFrame, Double albedo, boolean calculateAltitude,
               boolean calculateEarthSpacecraftBodyAngle, boolean calculateSubSCInformation, boolean calculateRaDec,
               boolean calculateIlluminationAngles, boolean calculateSubSolarInformation, boolean calculateLST, boolean calculateBetaAngle,
-              boolean calculateOrbitParameters, boolean useDSK){
+              boolean calculateOrbitParameters, boolean useDSK, List<CalculationPeriod> calculationPeriods){
     this.name = name;
     this.NAIFID = NAIFID;
     this.NAIFBodyFrame = NAIFBodyFrame;
@@ -49,6 +51,7 @@ public class Body {
     this.calculateBetaAngle = calculateBetaAngle;
     this.calculateOrbitParameters = calculateOrbitParameters;
     this.useDSK = useDSK;
+    this.calculationPeriods = calculationPeriods;
 
     // use SPICE to get body information that comes from kernels
     try {
@@ -142,6 +145,10 @@ public class Body {
 
   public boolean useDSK(){
     return useDSK;
+  }
+
+  public List<CalculationPeriod> calculationPeriods() {
+    return calculationPeriods;
   }
 
   /*

@@ -10,6 +10,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 import static gov.nasa.jpl.aerie.contrib.streamline.core.MutableResource.resource;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;

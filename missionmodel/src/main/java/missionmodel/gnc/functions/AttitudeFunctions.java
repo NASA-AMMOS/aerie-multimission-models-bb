@@ -101,7 +101,7 @@ public class AttitudeFunctions {
         try {
             CSPICE.spkezr(target, et.toET(), frame, correction, observer, targetRelative, lightTimeDelay);
         } catch (SpiceErrorException er) {
-            er.printStackTrace();
+            System.err.println("SpiceErrorException: " + er.getMessage());
         }
         return targetRelative;
     }

@@ -10,14 +10,18 @@ import java.time.ZonedDateTime;
 
 public class AbsoluteClock {
 
-  private Instant startTime;
+  private final Instant startTime;
 
   public AbsoluteClock(final Instant startTime) {
     this.startTime = startTime;
   }
 
+  public Instant getStartTime() {
+    return startTime;
+  }
+
   public Instant now() {
-    return startTime.plusMillis(Resources.currentTime().in(Duration.MILLISECONDS));
+    return getStartTime().plusMillis(Resources.currentTime().in(Duration.MILLISECONDS));
   }
 
 }

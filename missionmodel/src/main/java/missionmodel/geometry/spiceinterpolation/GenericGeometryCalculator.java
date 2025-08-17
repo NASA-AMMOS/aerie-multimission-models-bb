@@ -1,7 +1,11 @@
 package missionmodel.geometry.spiceinterpolation;
 
+import gov.nasa.jpl.aerie.contrib.streamline.core.Resource;
+import gov.nasa.jpl.aerie.contrib.streamline.core.monads.ResourceMonad;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.Registrar;
-import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.linear.Linear;
+import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
+import gov.nasa.jpl.time.Time;
 import missionmodel.AbsoluteClock;
 import missionmodel.JPLTimeConvertUtility;
 import missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator;
@@ -10,17 +14,22 @@ import missionmodel.geometry.interfaces.GeometryInformationNotAvailableException
 import missionmodel.geometry.interfaces.TimeDependentStateCalculator;
 import missionmodel.geometry.resources.GenericGeometryResources;
 import missionmodel.geometry.returnedobjects.*;
-import gov.nasa.jpl.time.Time;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import spice.basic.SpiceErrorException;
+import spice.basic.SpiceException;
+import spice.basic.SpiceWindow;
 
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 // import static missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator.et2LSTHours;
 import static gov.nasa.jpl.aerie.contrib.streamline.core.Resources.currentValue;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.DiscreteEffects.set;
+import static missionmodel.JPLTimeConvertUtility.jplTimeFromUTCInstant;
 import static missionmodel.geometry.directspicecalls.SpiceDirectTimeDependentStateCalculator.et2LSTHours;
-import static missionmodel.geometry.resources.GenericGeometryResources.*;
+import static missionmodel.spice.Spice.*;
 
 public class GenericGeometryCalculator implements GeometryCalculator {
   protected Map<String, Body> bodies;
@@ -31,19 +40,72 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
   private  GenericGeometryResources geomRes;
 
-  protected  Registrar errorRegistrar;
+  public Duration spiceStart;
+  public Instant planStart;
+  public Time spiceStartTime;
+  public boolean useLinearResources;
 
-  public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Registrar errorRegistrar){
+  protected Registrar registrar;
+
+  private static final String EARTH = "EARTH";
+  private static final String SUN = "SUN";
+
+  public GenericGeometryCalculator(AbsoluteClock absoluteClock, int sc_id, String abcorr, Instant planStart, boolean useLinearResources, Registrar registrar) {
     this.absClock = absoluteClock;
     this.sc_id = sc_id;
     this.abcorr = abcorr;
-    this.errorRegistrar = errorRegistrar;
+    this.planStart = planStart;
+    this.useLinearResources = useLinearResources;
+    this.registrar = registrar;
   }
 
   public void setBodies(Map<String, Body> bodies){
     this.bodies = bodies;
     this.calc = new SpiceDirectTimeDependentStateCalculator(bodies, true);
-    this.geomRes = new GenericGeometryResources(errorRegistrar, bodies);
+    determineSpiceStart();
+    this.geomRes = new GenericGeometryResources(registrar, bodies, this);  // TODO -- these 2 classes depend on each other
+  }
+
+  /**
+   * determine when data is available from SPICE
+   */
+  private void determineSpiceStart() {
+    boolean debug = false;
+    // try getCoverage(), which tries to use the SPICE API to determine it
+    try {
+      SpiceWindow w = getCoverage(sc_id);
+      Instant spiceInstant = toUTC(w.getInterval(0)[0]);
+      if (debug) System.out.println("determineSpiceStart(): spiceInstant = toUTC(" + w.getInterval(0)[0] + ") = " + spiceInstant);
+      this.spiceStart = minus(spiceInstant, planStart);
+      if (debug) System.out.println("determineSpiceStart(): spiceStart = " + spiceStart);
+      spiceStartTime = d2t(spiceStart);
+    } catch (SpiceException e) {
+      throw new RuntimeException(e);
+    }
+    // For some reason SPICE doesn't like queries at the time from getCoverage(), even 1 minute later.
+    // Not sure why -- maybe because of light time or aberrations.
+    // So, we hunt for the time when we get good values.
+    // Not sure error handling works as documented, so this may not work
+    int hours = 0;
+    while (true) {
+      try {
+        var t = spiceStartTime.plus(gov.nasa.jpl.time.Duration.fromHours(hours));
+        var state = calc.getState(t, Integer.toString(sc_id), SUN, abcorr);
+        if (debug) System.out.println("determineSpiceStart(): t = " + t + ", state = " + (state == null ? "null" : "" + Arrays.deepToString(state)));
+        // currently just giving up after 48 hours from the getCoverage() value;
+        // Voyager 1 light time was about 23 hours away in 2024
+        if (hours < 48 && (state == null || state.length == 0 || state[0] == null))
+          hours += 1;
+        else break;
+      } catch (GeometryInformationNotAvailableException e) {
+        if (debug) System.out.println("Got exception trying to determine when spice starts: " + e.getLocalizedMessage());
+        if (hours >= 48) break;
+        hours += 1;
+      }
+    }
+    spiceStart = spiceStart.plus(Duration.of(hours, Duration.HOURS));
+    spiceStartTime = d2t(spiceStart);
+    if (debug) System.out.println("determineSpiceStart(): spiceStartTime = " + spiceStartTime + "(" + spiceStart + ")");
   }
 
   public GenericGeometryResources getResources() {
@@ -51,73 +113,66 @@ public class GenericGeometryCalculator implements GeometryCalculator {
   }
 
   public void calculateGeometry(Body body) throws GeometryInformationNotAvailableException {
-    Vector3D[] bodyPositionAndVelocityWRTSpacecraft = calc.getState(JPLTimeConvertUtility.nowJplTime(absClock), Integer.toString(sc_id), body.getName(), abcorr);
+    Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
     Vector3D[] sunPositionAndVelocityWRTBody = null;
 
     // calculate some quantities for every body
-    set(geomRes.BODY_POS_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
-    set(geomRes.BODY_VEL_ICRF.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
-    set(geomRes.SpacecraftBodyRange.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
-    set(geomRes.SpacecraftBodySpeed.get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
-    set(geomRes.BodyHalfAngleSize.get(body.getName()), Math.asin(body.getAverageEquitorialRadius()/bodyPositionAndVelocityWRTSpacecraft[0].getNorm())*(180.0/Math.PI));
+    set(geomRes.BODY_POS_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[0]);
+    set(geomRes.BODY_VEL_ICRF().get(body.getName()), bodyPositionAndVelocityWRTSpacecraft[1]);
+    set(geomRes.SpacecraftBodyRange().get(body.getName()).discrete(), bodyPositionAndVelocityWRTSpacecraft[0].getNorm());
+    set(geomRes.SpacecraftBodySpeed().get(body.getName()).discrete(), bodyPositionAndVelocityWRTSpacecraft[1].getNorm());
+    set(geomRes.BodyHalfAngleSize().get(body.getName()).discrete(), bodyHalfAngleSize(bodyPositionAndVelocityWRTSpacecraft, body));
 
     // this section is also multi-mission; the Sun can't have an angle from itself
-    if(!body.getName().equals("SUN")){
-      sunPositionAndVelocityWRTBody = calc.getState(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "SUN", abcorr);
-      set(geomRes.SunSpacecraftBodyAngle.get(body.getName()), Vector3D.angle(bodyPositionAndVelocityWRTSpacecraft[0].add(sunPositionAndVelocityWRTBody[0]),bodyPositionAndVelocityWRTSpacecraft[0])*(180.0/Math.PI));
-      set(geomRes.SunBodySpacecraftAngle.get(body.getName()), Vector3D.angle(bodyPositionAndVelocityWRTSpacecraft[0].scalarMultiply(-1.0), sunPositionAndVelocityWRTBody[0])*(180.0/Math.PI));
+    if (!body.getName().equals(SUN)) {
+      sunPositionAndVelocityWRTBody = sunPositionAndVelocityWRTBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
+      set(geomRes.SunSpacecraftBodyAngle().get(body.getName()), sunSpacecraftBodyAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
+      set(geomRes.SunBodySpacecraftAngle().get(body.getName()), sunBodySpacecraftAngle(bodyPositionAndVelocityWRTSpacecraft[0], sunPositionAndVelocityWRTBody[0]));
     }
 
     // this section is multi-mission because all missions have to communicate with Earth
-    if(body.getName().equals("EARTH")) {
-      set(geomRes.upleg_time, Time.upleg( JPLTimeConvertUtility.nowJplTime(absClock),
-        sc_id, bodies.get("EARTH").getNAIFID()).totalSeconds());
-      set(geomRes.downleg_time, Time.downleg(JPLTimeConvertUtility.nowJplTime(absClock),
-        sc_id, bodies.get("EARTH").getNAIFID()).totalSeconds());
-      RADec scRADec = new RADec(currentValue(geomRes.BODY_POS_ICRF.get("EARTH")).negate() , new Vector3D(0.0, 0.0, 0.0));
-      set(geomRes.spacecraftDeclination, scRADec.getDec());
-      set(geomRes.spacecraftRightAscension, scRADec.getRA());
-      set(geomRes.EarthSunProbeAngle, 180.0 - (currentValue(geomRes.SunBodySpacecraftAngle.get("EARTH")) +
-        currentValue(geomRes.SunSpacecraftBodyAngle.get("EARTH"))));
+    if (body.getName().equals(EARTH)) {
+      Double ult = upleg_time(JPLTimeConvertUtility.nowJplTime(absClock));
+      set(geomRes.upleg_time(), ult);
+      set(geomRes.downleg_time(), downleg_time(JPLTimeConvertUtility.nowJplTime(absClock)));
+      set(geomRes.rtlt(), ult + downleg_time(JPLTimeConvertUtility.nowJplTime(absClock).plus(gov.nasa.jpl.time.Duration.fromSeconds(ult))));
+      RADec scRADec = scRADec(JPLTimeConvertUtility.nowJplTime(absClock));
+      set(geomRes.spacecraftDeclination(), scRADec.getDec());
+      set(geomRes.spacecraftRightAscension(), scRADec.getRA());
+      set(geomRes.EarthSunProbeAngle(), earthSunProbeAngle(currentValue(geomRes.SunBodySpacecraftAngle().get(EARTH)),
+        currentValue(geomRes.SunSpacecraftBodyAngle().get(EARTH))));
     }
 
     // then we calculate things depending if the body was initialized to ask for it
-    if(body.doCalculateRaDec()){
-      Vector3D[] bodyPositionAndVelocityWRTEarth = calc.getState(JPLTimeConvertUtility.nowJplTime(absClock),
-        "EARTH", body.getName(), abcorr);
-      RADec earthRaDec = new RADec(bodyPositionAndVelocityWRTEarth[0], new Vector3D(0.0,0.0,0.0));
-      set(geomRes.EarthRaDecByBody.get(body.getName()).get("Ra"), earthRaDec.getRA());
-      set(geomRes.EarthRaDecByBody.get(body.getName()).get("Dec"), earthRaDec.getDec());
+    if (body.doCalculateRaDec()) {
+      Vector3D[] bodyPositionAndVelocityWRTEarth =
+        bodyPositionAndVelocityWRTEarth(JPLTimeConvertUtility.nowJplTime(absClock), body.getName());
+      set(geomRes.EarthRaDecByBody().get(body.getName()).get("Ra").discrete(), 
+        earthRaDecAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "Ra"));
+      set(geomRes.EarthRaDecByBody().get(body.getName()).get("Dec").discrete(), 
+        earthRaDecAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "Dec"));
 
-      double spacecraftRAFromEarth = currentValue(geomRes.spacecraftRightAscension);
-      double bodyRAFromEarth = earthRaDec.getRA();
-      set(geomRes.EarthRaDeltaWithSCByBody.get(body.getName()),
-        Math.min(Math.min(Math.abs(spacecraftRAFromEarth - bodyRAFromEarth),
-            Math.abs(spacecraftRAFromEarth - bodyRAFromEarth + 360)),
-          Math.abs(spacecraftRAFromEarth - bodyRAFromEarth - 360)));
+      set(geomRes.EarthRaDeltaWithSCByBody().get(body.getName()).discrete(),
+        earthRaDeltaWithSCByBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName()));
     }
 
     if(body.doCalculateEarthSpacecraftBodyAngle()){
-      Vector3D[] earthPositionAndVelocityWRTSC = calc.getState(JPLTimeConvertUtility.nowJplTime(absClock),
-        Integer.toString(sc_id), "EARTH", abcorr);
-      // this also comes in as radians and we want degrees
-      set(geomRes.EarthSpacecraftBodyAngle.get(body.getName()), Vector3D.angle(earthPositionAndVelocityWRTSC[0],
-        currentValue(geomRes.BODY_POS_ICRF.get(body.getName())))*(180.0/Math.PI));
+      set(geomRes.EarthSpacecraftBodyAngle().get(body.getName()).discrete(), 
+        earthSpacecraftBodyAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName()));
     }
 
-    if(body.doCalculateBetaAngle() && !body.getName().equals("SUN")){
+    if(body.doCalculateBetaAngle() && !body.getName().equals(SUN)){
       // beta angle is the angle between the vector normal to the orbital plane (sc position x velocity) and the
       // vector from the body to the sun
-      Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
-      set(geomRes.BetaAngleByBody.get(body.getName()), (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate())*(180.0/Math.PI))-90);
+      set(geomRes.BetaAngleByBody().get(body.getName()).discrete(), betaAngleByBody(bodyPositionAndVelocityWRTSpacecraft, sunPositionAndVelocityWRTBody));
     }
 
-    if(body.doCalculateSubSolarInformation() && !body.getName().equals("SUN")){
+    if(body.doCalculateSubSolarInformation() && !body.getName().equals(SUN)){
       SubPointInformation sp_sun = calc.getSubPointInformation(JPLTimeConvertUtility.nowJplTime(absClock),
-        "SUN", body.getName(), abcorr, body.useDSK());
+        SUN, body.getName(), abcorr, body.useDSK());
       LatLonCoord latLonSolarData = new LatLonCoord(sp_sun.getSpoint());
       // noone talks in radians lat/lon, so we convert to degrees
-      set(geomRes.BodySubSolarPoint.get(body.getName()), new Vector3D(
+      set(geomRes.BodySubSolarPoint().get(body.getName()), new Vector3D(
         latLonSolarData.getLatitude()*(180.0/Math.PI),
         latLonSolarData.getLongitude()*(180.0/Math.PI),
            latLonSolarData.getRadius()));
@@ -129,19 +184,20 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       if(sp_sc.isFound()) {
         if(body.doCalculateSubSCPoint() || body.doCalculateAltitude()) {
           LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("dist"), sp_sc.getSrfvec().getNorm());
+          set(geomRes.BodySubSCPoint().get(body.getName()).get("dist").discrete(), sp_sc.getSrfvec().getNorm());
           // noone talks in radians lat/lon, so we convert to degrees
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("latitude"), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("longitude"), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint.get(body.getName()).get("radius"), latLonSurfaceData.getRadius());
+                      set(geomRes.BodySubSCPoint().get(body.getName()).get("latitude").discrete(), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
+            set(geomRes.BodySubSCPoint().get(body.getName()).get("longitude").discrete(), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
+            set(geomRes.BodySubSCPoint().get(body.getName()).get("radius").discrete(), latLonSurfaceData.getRadius());
           if(body.doCalculateAltitude()){
-            set(geomRes.SpacecraftAltitude.get(body.getName()),
-              bodyPositionAndVelocityWRTSpacecraft[0].getNorm()-latLonSurfaceData.getRadius());
+            set(geomRes.SpacecraftAltitude().get(body.getName()).discrete(),
+                spacecraftAltitude(bodyPositionAndVelocityWRTSpacecraft, sp_sc));
+                //bodyPositionAndVelocityWRTSpacecraft[0].getNorm()-latLonSurfaceData.getRadius());
           }
 
           if(body.doCalculateLST()){
             try {
-              set(geomRes.BodySubSCPoint.get(body.getName()).get("LST"),
+              set(geomRes.BodySubSCPoint().get(body.getName()).get("LST").discrete(),
                 et2LSTHours(JPLTimeConvertUtility.nowJplTime(absClock), body.getNAIFID(), latLonSurfaceData.getLongitude()));
             } catch (SpiceErrorException e) {
               throw new GeometryInformationNotAvailableException(e.getMessage());
@@ -150,11 +206,12 @@ public class GenericGeometryCalculator implements GeometryCalculator {
         }
 
         if (body.doCalculateIlluminationAngles()) {
-          IlluminationAngles illumAngles = calc.getIlluminationAngles(JPLTimeConvertUtility.nowJplTime(absClock),
-            Integer.toString(sc_id), body.getName(), abcorr, body.useDSK());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("phase"), illumAngles.getPhaseAngle());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("incidence"), illumAngles.getIncidenceAngle());
-          set(geomRes.IlluminationAnglesByBody.get(body.getName()).get("emission"), illumAngles.getEmissionAngle());
+          set(geomRes.IlluminationAnglesByBody().get(body.getName()).get("phase").discrete(), 
+            illuminationAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "phase"));
+          set(geomRes.IlluminationAnglesByBody().get(body.getName()).get("incidence").discrete(), 
+            illuminationAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "incidence"));
+          set(geomRes.IlluminationAnglesByBody().get(body.getName()).get("emission").discrete(), 
+            illuminationAngle(JPLTimeConvertUtility.nowJplTime(absClock), body.getName(), "emission"));
         }
       }
     }
@@ -163,13 +220,368 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       OrbitConicElements SCOrbitOfBody = calc.getOrbitConicElements(JPLTimeConvertUtility.nowJplTime(absClock),
         Integer.toString(sc_id), body.getName(), abcorr);
       // we only want to set inclination and orbit period if eccentricity is less than 1, because otherwise we're not actually in orbit and we get NaN for orbit period
-      if(SCOrbitOfBody.getEccentricity() < 1) {
-        double semiMajorAxis = SCOrbitOfBody.getPerifocalDistance() / (1 - SCOrbitOfBody.getEccentricity());
-        set(geomRes.orbitInclinationByBody.get(body.getName()), SCOrbitOfBody.getInclination() * (180.0 / Math.PI));
-        set(geomRes.orbitPeriodByBody.get(body.getName()), 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / body.getMu()));
-      }
+              if(SCOrbitOfBody.getEccentricity() < 1) {
+          set(geomRes.orbitInclinationByBody().get(body.getName()).discrete(), 
+            orbitInclinationByBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName()));
+          set(geomRes.orbitPeriodByBody().get(body.getName()).discrete(), 
+            orbitPeriodByBody(JPLTimeConvertUtility.nowJplTime(absClock), body.getName()));
+        }
     }
 
+  }
+
+  private Time d2t(Duration d) {
+    return jplTimeFromUTCInstant(Duration.addToInstant(absClock.getStartTime(), d));
+  }
+
+  public double upleg_time(Time t) {
+    var dur = Time.upleg(Time.max(t, spiceStartTime), sc_id, bodies.get(EARTH).getNAIFID());
+    return dur.totalSeconds();
+  }
+
+  public double upleg_duration(Duration t) {
+    return upleg_time(d2t(t));
+  }
+
+  public double downleg_time(Time t) {
+    var dur = Time.downleg(Time.max(t, spiceStartTime), sc_id, bodies.get(EARTH).getNAIFID());
+    return dur.totalSeconds();
+  }
+
+  public double downleg_duration(Duration t) {
+    return downleg_time(d2t(t));
+  }
+
+  public Vector3D[] bodyPositionAndVelocityWRTSpacecraft(Time t, String bodyName) {
+    try {
+      return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), bodyName, abcorr);
+    } catch (GeometryInformationNotAvailableException e) {
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
+    }
+    return new Vector3D[]{};
+  }
+
+  public Vector3D[] bodyPositionAndVelocityWRTSpacecraft(Duration t, String bodyName) {
+    return bodyPositionAndVelocityWRTSpacecraft(d2t(t), bodyName);
+  }
+
+  public RADec scRADec(Vector3D bodyPosEarth) {
+    RADec scRADec = new RADec(bodyPosEarth.negate(), Vector3D.ZERO);
+    return scRADec;
+  }
+
+  public RADec scRADec(Time t) {
+    return scRADec(bodyPositionAndVelocityWRTSpacecraft(Time.max(t, spiceStartTime), EARTH)[0]);
+  }
+
+  public RADec scRADec(Duration t) {
+    return scRADec(d2t(t));
+  }
+
+  public double spacecraftDeclination(Time t) {
+    return scRADec(Time.max(t, spiceStartTime)).getDec();
+  }
+
+  public double spacecraftDeclination(Duration t) {
+    return spacecraftDeclination(d2t(t));
+  }
+
+  public double spacecraftRightAscension(Time t) {
+    return scRADec(t).getRA();
+  }
+
+  public double spacecraftRightAscension(Duration t) {
+    return spacecraftRightAscension(d2t(t));
+  }
+
+  public double spacecraftAltitude(Vector3D[] bodyPosVel, SubPointInformation sp_sc) {
+    try {
+      LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
+      return bodyPosVel[0].getNorm() - latLonSurfaceData.getRadius();
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double spacecraftAltitude(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPosVel = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      if (bodyPosVel.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateAltitude()) {
+          SubPointInformation sp_sc = calc.getSubPointInformation(t, Integer.toString(sc_id), body.getName(), abcorr, body.useDSK());
+          if (sp_sc.isFound()) {
+            return spacecraftAltitude(bodyPosVel, sp_sc);
+          }
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double spacecraftAltitude(Duration t, String bodyName) {
+    return spacecraftAltitude(d2t(t), bodyName);
+  }
+
+  public double betaAngleByBody(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      Vector3D[] sunPositionAndVelocityWRTBody = sunPositionAndVelocityWRTBody(t, bodyName);
+      if (bodyPositionAndVelocityWRTSpacecraft.length > 0 && sunPositionAndVelocityWRTBody.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateBetaAngle()) {
+          return betaAngleByBody(bodyPositionAndVelocityWRTSpacecraft, sunPositionAndVelocityWRTBody);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double betaAngleByBody(Duration t, String bodyName) {
+    return betaAngleByBody(d2t(t), bodyName);
+  }
+
+  public double betaAngleByBody(Vector3D[] bodyPositionAndVelocityWRTSpacecraft, Vector3D[] sunPositionAndVelocityWRTBody) {
+    try {
+      // vector from the body to the sun
+      Vector3D orbitPlaneNormal = bodyPositionAndVelocityWRTSpacecraft[0].crossProduct(bodyPositionAndVelocityWRTSpacecraft[1]).normalize();
+      return (Vector3D.angle(orbitPlaneNormal, sunPositionAndVelocityWRTBody[0].negate()) * (180.0 / Math.PI)) - 90;
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double bodyHalfAngleSize(Time t, String bodyName) {
+    try {
+      Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      if (bodyPositionAndVelocityWRTSpacecraft.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null) {
+          return bodyHalfAngleSize(bodyPositionAndVelocityWRTSpacecraft, body);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double bodyHalfAngleSize(Duration t, String bodyName) {
+    return bodyHalfAngleSize(d2t(t), bodyName);
+  }
+
+  public double earthSpacecraftBodyAngle(Time t, String bodyName) {
+    try {
+      Vector3D[] earthPositionAndVelocityWRTSC = earthPositionAndVelocityWRTSC(t);
+      Vector3D[] bodyPositionAndVelocityWRTSpacecraft = bodyPositionAndVelocityWRTSpacecraft(t, bodyName);
+      if (earthPositionAndVelocityWRTSC.length > 0 && bodyPositionAndVelocityWRTSpacecraft.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateEarthSpacecraftBodyAngle()) {
+          return Vector3D.angle(earthPositionAndVelocityWRTSC[0], bodyPositionAndVelocityWRTSpacecraft[0]) * (180.0 / Math.PI);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double earthSpacecraftBodyAngle(Duration t, String bodyName) {
+    return earthSpacecraftBodyAngle(d2t(t), bodyName);
+  }
+
+  public double illuminationAngle(Time t, String bodyName, String angleType) {
+    try {
+      Body body = bodies.get(bodyName);
+      if (body != null && body.doCalculateIlluminationAngles()) {
+        IlluminationAngles illumAngles = calc.getIlluminationAngles(t, Integer.toString(sc_id), bodyName, abcorr, body.useDSK());
+        switch (angleType) {
+          case "phase": return illumAngles.getPhaseAngle();
+          case "incidence": return illumAngles.getIncidenceAngle();
+          case "emission": return illumAngles.getEmissionAngle();
+          default: return 0.0;
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double illuminationAngle(Duration t, String bodyName, String angleType) {
+    return illuminationAngle(d2t(t), bodyName, angleType);
+  }
+
+  public double earthRaDecAngle(Time t, String bodyName, String angleType) {
+    try {
+      Vector3D[] bodyPositionAndVelocityWRTEarth = bodyPositionAndVelocityWRTEarth(t, bodyName);
+      if (bodyPositionAndVelocityWRTEarth.length > 0) {
+        Body body = bodies.get(bodyName);
+        if (body != null && body.doCalculateRaDec()) {
+          RADec earthRaDec = new RADec(bodyPositionAndVelocityWRTEarth[0], Vector3D.ZERO);
+          switch (angleType) {
+            case "Ra": return earthRaDec.getRA();
+            case "Dec": return earthRaDec.getDec();
+            default: return 0.0;
+          }
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double earthRaDecAngle(Duration t, String bodyName, String angleType) {
+    return earthRaDecAngle(d2t(t), bodyName, angleType);
+  }
+
+  public double earthRaDeltaWithSCByBody(Time t, String bodyName) {
+    try {
+      double spacecraftRAFromEarth = spacecraftRightAscension(t);
+      double bodyRAFromEarth = earthRaDecAngle(t, bodyName, "Ra");
+      return Math.min(Math.min(Math.abs(spacecraftRAFromEarth - bodyRAFromEarth),
+          Math.abs(spacecraftRAFromEarth - bodyRAFromEarth + 360)),
+        Math.abs(spacecraftRAFromEarth - bodyRAFromEarth - 360));
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double earthRaDeltaWithSCByBody(Duration t, String bodyName) {
+    return earthRaDeltaWithSCByBody(d2t(t), bodyName);
+  }
+
+  public double orbitInclinationByBody(Time t, String bodyName) {
+    try {
+      Body body = bodies.get(bodyName);
+      if (body != null && body.doCalculateOrbitParameters()) {
+        OrbitConicElements SCOrbitOfBody = calc.getOrbitConicElements(t, Integer.toString(sc_id), bodyName, abcorr);
+        if (SCOrbitOfBody.getEccentricity() < 1) {
+          return SCOrbitOfBody.getInclination() * (180.0 / Math.PI);
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double orbitInclinationByBody(Duration t, String bodyName) {
+    return orbitInclinationByBody(d2t(t), bodyName);
+  }
+
+  public double orbitPeriodByBody(Time t, String bodyName) {
+    try {
+      Body body = bodies.get(bodyName);
+      if (body != null && body.doCalculateOrbitParameters()) {
+        OrbitConicElements SCOrbitOfBody = calc.getOrbitConicElements(t, Integer.toString(sc_id), bodyName, abcorr);
+        if (SCOrbitOfBody.getEccentricity() < 1) {
+          double semiMajorAxis = SCOrbitOfBody.getPerifocalDistance() / (1 - SCOrbitOfBody.getEccentricity());
+          return 2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / body.getMu());
+        }
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  public double orbitPeriodByBody(Duration t, String bodyName) {
+    return orbitPeriodByBody(d2t(t), bodyName);
+  }
+
+  public double bodyHalfAngleSize(Vector3D[] bodyPositionAndVelocityWRTSpacecraft, Body body) {
+    try {
+      return Math.asin(body.getAverageEquitorialRadius() / bodyPositionAndVelocityWRTSpacecraft[0].getNorm()) * (180.0 / Math.PI);
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return 0.0;
+  }
+
+  Vector3D[] earthPositionAndVelocityWRTSC(Time t) {
+    try {
+      return calc.getState(Time.max(t, spiceStartTime), Integer.toString(sc_id), EARTH, abcorr);
+    } catch (GeometryInformationNotAvailableException e) {
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
+    }
+    return new Vector3D[]{};
+  }
+  public Vector3D[] earthPositionAndVelocityWRTSC(Duration t) {
+    return earthPositionAndVelocityWRTSC(d2t(t));
+  }
+
+  public Vector3D[] bodyPositionAndVelocityWRTEarth(Time t, String bodyName) {
+    try {
+      return calc.getState(Time.max(t, spiceStartTime), EARTH, bodyName, abcorr);
+    } catch (GeometryInformationNotAvailableException e) {
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
+    }
+    return new Vector3D[]{};
+  }
+  public Vector3D[] bodyPositionAndVelocityWRTEarth(Duration t, String bodyName) {
+    return bodyPositionAndVelocityWRTEarth(d2t(t), bodyName);
+  }
+
+  public Vector3D[] sunPositionAndVelocityWRTBody(Time t, String bodyName) {
+    try {
+      return calc.getState(Time.max(t, spiceStartTime), bodyName, SUN, abcorr);
+    } catch (GeometryInformationNotAvailableException e) {
+      System.err.println("GeometryInformationNotAvailableException: " + e.getMessage());
+    }
+    return new Vector3D[]{};
+  }
+  public Vector3D[] sunPositionAndVelocityWRTBody(Duration t, String bodyName) {
+    return sunPositionAndVelocityWRTBody(d2t(t), bodyName);
+  }
+
+  public double sunSpacecraftBodyAngle(Vector3D bodyPosWRTSpacecraft, Vector3D sunPosWRTBody) {
+    return Vector3D.angle(bodyPosWRTSpacecraft.add(sunPosWRTBody),bodyPosWRTSpacecraft) * (180.0 / Math.PI);
+  }
+  public double sunSpacecraftBodyAngle(Time t, String bodyName) {
+    return sunSpacecraftBodyAngle(
+      bodyPositionAndVelocityWRTSpacecraft(t, bodyName)[0],
+      sunPositionAndVelocityWRTBody(t, bodyName)[0]);
+  }
+  public double sunSpacecraftBodyAngle(Duration t, String bodyName) {
+    return sunSpacecraftBodyAngle(d2t(t), bodyName);
+  }
+
+  public double sunBodySpacecraftAngle(Vector3D bodyPosWRTSpacecraft, Vector3D sunPosWRTBody) {
+    return Vector3D.angle(bodyPosWRTSpacecraft.scalarMultiply(-1.0), sunPosWRTBody) * (180.0 / Math.PI);
+  }
+  public Resource<Double> sunBodySpacecraftAngle(Resource<Linear>[] bodyPosWRTSpacecraft_a, Resource<Linear>[] sunPosWRTBody_a) {
+    return ResourceMonad.map(
+      bodyPosWRTSpacecraft_a[0], bodyPosWRTSpacecraft_a[1], bodyPosWRTSpacecraft_a[2],
+      sunPosWRTBody_a[0], sunPosWRTBody_a[1], sunPosWRTBody_a[2],
+      (bpx, bpy, bpz, spx, spy, spz) ->
+        Vector3D.angle(new Vector3D(-bpx.extract(), -bpy.extract(), -bpz.extract()),
+                       new Vector3D(spx.extract(), spy.extract(), spz.extract())) * (180.0 / Math.PI));
+  }
+  public double sunBodySpacecraftAngle(Time t, String bodyName) {
+    return sunBodySpacecraftAngle(
+      bodyPositionAndVelocityWRTSpacecraft(t, bodyName)[0],
+      sunPositionAndVelocityWRTBody(t, bodyName)[0]);
+  }
+  public double sunBodySpacecraftAngle(Duration t, String bodyName) {
+    return sunSpacecraftBodyAngle(d2t(t), bodyName);
+  }
+  public double earthSunProbeAngle(double sunBodySpacecraftAngleDeg, double sunSpacecraftBodyAngleDeg) {
+    return 180.0 - (sunBodySpacecraftAngleDeg + sunSpacecraftBodyAngleDeg);
+  }
+  public double earthSunProbeAngle(Time t) {
+    return earthSunProbeAngle(sunBodySpacecraftAngle(t, EARTH), sunSpacecraftBodyAngle(t, EARTH));
+  }
+  public double earthSunProbeAngle(Duration t) {
+    return earthSunProbeAngle(d2t(t));
   }
 
 //  public static Vector3D positionResourceToVector3D(String body) {
@@ -180,4 +592,69 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 //      BODY_POS_ICRF.get(body).get("z").currentval()
 //    );
 //  }
+
+  // BodySubSCPoint time-based helper functions - optimized to avoid redundant SPICE calls
+  public SubSCPointData subSCPointData(Time t, String bodyName) {
+    try {
+      SubPointInformation sp_sc = calc.getSubPointInformation(t, Integer.toString(sc_id), bodyName, abcorr, bodies.get(bodyName).useDSK());
+      if (sp_sc.isFound()) {
+        LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
+        return new SubSCPointData(
+          sp_sc.getSrfvec().getNorm(),
+          latLonSurfaceData.getLatitude() * (180.0 / Math.PI), // Convert to degrees
+          latLonSurfaceData.getLongitude() * (180.0 / Math.PI), // Convert to degrees
+          latLonSurfaceData.getRadius(),
+          et2LSTHours(t, bodies.get(bodyName).getNAIFID(), latLonSurfaceData.getLongitude())
+        );
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return new SubSCPointData(0.0, 0.0, 0.0, 0.0, 0.0);
+  }
+
+  public SubSCPointData subSCPointData(Duration t, String bodyName) {
+    return subSCPointData(d2t(t), bodyName);
+  }
+
+  // Individual accessor methods for backward compatibility
+  public double subSCPointDistance(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).distance();
+  }
+
+  public double subSCPointDistance(Duration t, String bodyName) {
+    return subSCPointDistance(d2t(t), bodyName);
+  }
+
+  public double subSCPointLatitude(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).latitude();
+  }
+
+  public double subSCPointLatitude(Duration t, String bodyName) {
+    return subSCPointLatitude(d2t(t), bodyName);
+  }
+
+  public double subSCPointLongitude(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).longitude();
+  }
+
+  public double subSCPointLongitude(Duration t, String bodyName) {
+    return subSCPointLongitude(d2t(t), bodyName);
+  }
+
+  public double subSCPointRadius(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).radius();
+  }
+
+  public double subSCPointRadius(Duration t, String bodyName) {
+    return subSCPointRadius(d2t(t), bodyName);
+  }
+
+  public double subSCPointLST(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).lst();
+  }
+
+  public double subSCPointLST(Duration t, String bodyName) {
+    return subSCPointLST(d2t(t), bodyName);
+  }
 }
