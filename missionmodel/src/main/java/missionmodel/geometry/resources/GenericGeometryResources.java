@@ -18,6 +18,7 @@ import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import missionmodel.geometry.returnedobjects.RADec;
 import missionmodel.geometry.spiceinterpolation.Body;
 import missionmodel.geometry.spiceinterpolation.GenericGeometryCalculator;
+import missionmodel.geometry.spiceinterpolation.SubSCPointData;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
@@ -104,7 +105,7 @@ public class GenericGeometryResources {
   private final Map<String, DoubleResource> EarthRaDeltaWithSCByBody;
 
   private final Map<String, MutableResource<Discrete<Vector3D>>> BodySubSolarPoint;
-  private final Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint;
+  private final Map<String, Map<String, DoubleResource>> BodySubSCPoint;
 
   private final Map<String, MutableResource<Discrete<EclipseTypes>>> SpacecraftEclipseByBody;
   private final MutableResource<Discrete<EclipseTypes>> AnySpacecraftEclipse;
@@ -359,11 +360,38 @@ public class GenericGeometryResources {
       }
 
       if (subSCBodies.contains(body)) {
-        Map<String, MutableResource<Discrete<Double>>> subSCMap = new HashMap<>();
+        Map<String, DoubleResource> subSCMap = new HashMap<>();
         for (String index : subSCIndices) {
-          subSCMap.put(index, resource(discrete(0.0)));
-          if (reg != null) reg.discrete("subSCBodies_" + body + "_" + index,
-            subSCMap.get(index), dvm);
+          var subSC_d = resource(discrete(0.0));
+          Resource<Unstructured<Double>> subSC_u = resource(Unstructured.timeBased(t -> {
+            try {
+              SubSCPointData data = geometryCalculator.subSCPointData(t, body);
+              switch (index) {
+                case "dist": return data.distance();
+                case "latitude": return data.latitude();
+                case "longitude": return data.longitude();
+                case "radius": return data.radius();
+                case "LST": return data.lst();
+                default: return 0.0;
+              }
+            } catch (Exception e) {
+              return 0.0;
+            }
+          }));
+          Resource<Linear> subSC_p = maybeApproximateAsLinear(subSC_u, body);
+          subSCMap.put(index, new DoubleResource(subSC_d, subSC_u, subSC_p));
+          if (reg != null) {
+            String unit = switch (index) {
+              case "dist" -> "km";
+              case "latitude" -> "deg";
+              case "longitude" -> "deg";
+              case "radius" -> "km";
+              case "LST" -> "h";
+              default -> "";
+            };
+            register_p(reg, "subSCBodies_" + body + "_" + index,
+              subSC_d, subSC_p, withUnit(unit, dvm));
+          }
         }
         BodySubSCPoint.put(body, subSCMap);
       }
@@ -614,7 +642,7 @@ private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>>
     return BodySubSolarPoint;
   }
 
-  public Map<String, Map<String, MutableResource<Discrete<Double>>>> BodySubSCPoint() {
+  public Map<String, Map<String, DoubleResource>> BodySubSCPoint() {
     return BodySubSCPoint;
   }
 

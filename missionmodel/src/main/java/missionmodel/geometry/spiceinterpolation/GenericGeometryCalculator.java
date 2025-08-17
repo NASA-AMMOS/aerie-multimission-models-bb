@@ -184,11 +184,11 @@ public class GenericGeometryCalculator implements GeometryCalculator {
       if(sp_sc.isFound()) {
         if(body.doCalculateSubSCPoint() || body.doCalculateAltitude()) {
           LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
-          set(geomRes.BodySubSCPoint().get(body.getName()).get("dist"), sp_sc.getSrfvec().getNorm());
+          set(geomRes.BodySubSCPoint().get(body.getName()).get("dist").discrete(), sp_sc.getSrfvec().getNorm());
           // noone talks in radians lat/lon, so we convert to degrees
-          set(geomRes.BodySubSCPoint().get(body.getName()).get("latitude"), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint().get(body.getName()).get("longitude"), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
-          set(geomRes.BodySubSCPoint().get(body.getName()).get("radius"), latLonSurfaceData.getRadius());
+                      set(geomRes.BodySubSCPoint().get(body.getName()).get("latitude").discrete(), latLonSurfaceData.getLatitude()*(180.0/Math.PI));
+            set(geomRes.BodySubSCPoint().get(body.getName()).get("longitude").discrete(), latLonSurfaceData.getLongitude()*(180.0/Math.PI));
+            set(geomRes.BodySubSCPoint().get(body.getName()).get("radius").discrete(), latLonSurfaceData.getRadius());
           if(body.doCalculateAltitude()){
             set(geomRes.SpacecraftAltitude().get(body.getName()).discrete(),
                 spacecraftAltitude(bodyPositionAndVelocityWRTSpacecraft, sp_sc));
@@ -197,7 +197,7 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 
           if(body.doCalculateLST()){
             try {
-              set(geomRes.BodySubSCPoint().get(body.getName()).get("LST"),
+              set(geomRes.BodySubSCPoint().get(body.getName()).get("LST").discrete(),
                 et2LSTHours(JPLTimeConvertUtility.nowJplTime(absClock), body.getNAIFID(), latLonSurfaceData.getLongitude()));
             } catch (SpiceErrorException e) {
               throw new GeometryInformationNotAvailableException(e.getMessage());
@@ -592,4 +592,69 @@ public class GenericGeometryCalculator implements GeometryCalculator {
 //      BODY_POS_ICRF.get(body).get("z").currentval()
 //    );
 //  }
+
+  // BodySubSCPoint time-based helper functions - optimized to avoid redundant SPICE calls
+  public SubSCPointData subSCPointData(Time t, String bodyName) {
+    try {
+      SubPointInformation sp_sc = calc.getSubPointInformation(t, Integer.toString(sc_id), bodyName, abcorr, bodies.get(bodyName).useDSK());
+      if (sp_sc.isFound()) {
+        LatLonCoord latLonSurfaceData = new LatLonCoord(sp_sc.getSpoint());
+        return new SubSCPointData(
+          sp_sc.getSrfvec().getNorm(),
+          latLonSurfaceData.getLatitude() * (180.0 / Math.PI), // Convert to degrees
+          latLonSurfaceData.getLongitude() * (180.0 / Math.PI), // Convert to degrees
+          latLonSurfaceData.getRadius(),
+          et2LSTHours(t, bodies.get(bodyName).getNAIFID(), latLonSurfaceData.getLongitude())
+        );
+      }
+    } catch (Exception e) {
+      // Handle any exceptions gracefully
+    }
+    return new SubSCPointData(0.0, 0.0, 0.0, 0.0, 0.0);
+  }
+
+  public SubSCPointData subSCPointData(Duration t, String bodyName) {
+    return subSCPointData(d2t(t), bodyName);
+  }
+
+  // Individual accessor methods for backward compatibility
+  public double subSCPointDistance(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).distance();
+  }
+
+  public double subSCPointDistance(Duration t, String bodyName) {
+    return subSCPointDistance(d2t(t), bodyName);
+  }
+
+  public double subSCPointLatitude(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).latitude();
+  }
+
+  public double subSCPointLatitude(Duration t, String bodyName) {
+    return subSCPointLatitude(d2t(t), bodyName);
+  }
+
+  public double subSCPointLongitude(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).longitude();
+  }
+
+  public double subSCPointLongitude(Duration t, String bodyName) {
+    return subSCPointLongitude(d2t(t), bodyName);
+  }
+
+  public double subSCPointRadius(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).radius();
+  }
+
+  public double subSCPointRadius(Duration t, String bodyName) {
+    return subSCPointRadius(d2t(t), bodyName);
+  }
+
+  public double subSCPointLST(Time t, String bodyName) {
+    return subSCPointData(t, bodyName).lst();
+  }
+
+  public double subSCPointLST(Duration t, String bodyName) {
+    return subSCPointLST(d2t(t), bodyName);
+  }
 }
