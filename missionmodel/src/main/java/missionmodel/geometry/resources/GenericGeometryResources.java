@@ -12,6 +12,7 @@ import gov.nasa.jpl.aerie.contrib.streamline.modeling.black_box.monads.Unstructu
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad;
 import gov.nasa.jpl.aerie.contrib.streamline.modeling.linear.Linear;
+import gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.Polynomial;
 import gov.nasa.jpl.aerie.merlin.framework.ValueMapper;
 import gov.nasa.jpl.aerie.merlin.protocol.types.Duration;
 import missionmodel.geometry.returnedobjects.RADec;
@@ -32,6 +33,7 @@ import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.Discrete.d
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.discrete.monads.DiscreteResourceMonad.map;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.PolynomialResources.assumeLinear;
 import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.PolynomialResources.constant;
+import static gov.nasa.jpl.aerie.contrib.streamline.modeling.polynomial.PolynomialResources.polynomialResource;
 import static missionmodel.JPLTimeConvertUtility.getDuration;
 
 /**
@@ -109,7 +111,7 @@ public class GenericGeometryResources {
 
   private final Map<String, Map<String, MutableResource<Discrete<Boolean>>>> SpacecraftOccultationByBodyAndStation;
   private final MutableResource<Discrete<Integer>> Occultation;
-  private final MutableResource<Discrete<Double>> FractionOfSunNotInEclipse;
+  private final DoubleResource FractionOfSunNotInEclipse;
   private final MutableResource<Discrete<Integer>> LitOrDarkSide;
 
   private final Map<String, DoubleResource> orbitInclinationByBody;
@@ -238,8 +240,10 @@ public class GenericGeometryResources {
     Occultation = resource(discrete(0));
     if (reg != null) reg.discrete("Occultation", Occultation, ivm);
 
-    FractionOfSunNotInEclipse = resource(discrete(1.0));
-    if (reg != null) reg.discrete("FractionOfSunNotInEclipse", FractionOfSunNotInEclipse, dvm);
+    var fractionOfSunNotInEclipse_d = resource(discrete(1.0));
+    MutableResource<Polynomial> fractionOfSunNotInEclipse_p = polynomialResource(1.0);
+    FractionOfSunNotInEclipse = DoubleResource.makeDUP(fractionOfSunNotInEclipse_d, null, fractionOfSunNotInEclipse_p);
+    if (reg != null) reg.discrete("FractionOfSunNotInEclipse", fractionOfSunNotInEclipse_d, dvm);
 
     LitOrDarkSide = resource(discrete(0));
     if (reg != null) reg.discrete("LitOrDarkSide", LitOrDarkSide, ivm);
@@ -630,7 +634,7 @@ private Resource<Linear> maybeApproximateAsLinear(Resource<Unstructured<Double>>
     return Occultation;
   }
 
-  public MutableResource<Discrete<Double>> FractionOfSunNotInEclipse() {
+  public DoubleResource FractionOfSunNotInEclipse() {
     return FractionOfSunNotInEclipse;
   }
 
